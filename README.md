@@ -61,7 +61,7 @@ The app now shows the full investigation run:
 - Observability event stream
 - Sanitized handoff report
 
-The 90-second video outline lives in `docs/DEMO_SCRIPT.md`.
+The 90-second video outline lives in `docs/DEMO_SCRIPT.md`, and the paste-ready Devpost packet lives in `docs/SUBMISSION_PACKET.md`.
 
 ## Architecture
 
