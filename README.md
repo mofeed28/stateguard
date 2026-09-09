@@ -48,7 +48,7 @@ The flagship demo incident replays a high-risk automation mismatch:
 3. A prior order may still exist after an ambiguous cancel response.
 4. StateGuard reconstructs the timeline, spots belief-vs-reality drift, and asks for approval before a safe maintenance action.
 
-The dashboard also includes a second client-communications incident where a follow-up agent believes an email was sent, but the provider rejected delivery. This proves the core product is not finance-only: it is a generic reconciliation layer with a specific, high-stakes flagship demo.
+The dashboard also includes client-communications and operations-scheduling incidents. One follow-up agent believes an email was sent, but the provider rejected delivery. Another scheduling agent believes a clinic shift is fully staffed, but the calendar still has two pending volunteers. These prove the core product is not finance-only: it is a generic reconciliation layer with a specific, high-stakes flagship demo.
 
 The app now shows the full investigation run:
 

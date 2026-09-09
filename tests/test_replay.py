@@ -56,6 +56,17 @@ def test_inbox_replay_proves_non_finance_adapter():
     assert payload["mismatches"][0]["title"].startswith("Workflow belief")
 
 
+def test_scheduler_replay_proves_human_operations_adapter():
+    response = client.get("/api/incidents/scheduler-unconfirmed-volunteer-coverage/replay")
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["incident"]["domain"] == "Operations scheduling"
+    assert payload["incident"]["severity"] == "medium"
+    assert len(payload["mismatches"]) == 2
+    assert "backup volunteer outreach" in payload["decision"]["recommended_action"]
+
+
 def test_strands_tools_endpoint_lists_decorated_tools():
     response = client.get("/api/strands-tools")
     assert response.status_code == 200

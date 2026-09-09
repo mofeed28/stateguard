@@ -30,7 +30,7 @@ StateGuard monitors autonomous workflows for belief-vs-reality drift. The demo s
 
 StateGuard catches that mismatch before the next autonomous action. It shows the investigation timeline, agent findings, structured output, risk classification, approval gate, observability events, and a sanitized operator handoff.
 
-The project also includes a second client-communications incident where an agent believes an email was sent, but the provider rejected delivery. That shows the same safety pattern works beyond finance.
+The project also includes client-communications and operations-scheduling incidents. One agent believes an email was sent, but the provider rejected delivery. Another believes a clinic shift is fully staffed, but calendar reality shows only one accepted volunteer and two pending invites. That shows the same safety pattern works beyond finance.
 
 ## Why It Matters
 

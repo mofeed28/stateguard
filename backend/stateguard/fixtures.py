@@ -129,8 +129,61 @@ def inbox_incident() -> Incident:
     )
 
 
+def scheduler_incident() -> Incident:
+    events = [
+        WorkflowEvent(
+            ts="2026-09-10T06:45:00.000Z",
+            kind=EventKind.local_belief,
+            source="shift-agent",
+            summary="Agent marks the Saturday clinic intake shift as fully staffed.",
+            data={"shift": "saturday-clinic-intake", "local_confirmed_volunteers": 3},
+        ),
+        WorkflowEvent(
+            ts="2026-09-10T06:45:08.120Z",
+            kind=EventKind.planned_action,
+            source="shift-agent",
+            summary="Agent cancels backup volunteer outreach because coverage appears complete.",
+            data={"backup_outreach": "cancel", "assumed_coverage": True},
+        ),
+        WorkflowEvent(
+            ts="2026-09-10T06:46:31.540Z",
+            kind=EventKind.provider_response,
+            source="calendar-api",
+            summary="Calendar provider accepts one invite update but rate-limits two pending confirmations.",
+            data={"accepted": 1, "pending": 2, "response": "partial_rate_limit"},
+        ),
+        WorkflowEvent(
+            ts="2026-09-10T06:49:04.300Z",
+            kind=EventKind.external_observation,
+            source="calendar-api",
+            summary="Calendar snapshot shows one accepted volunteer and two pending invites.",
+            data={"accepted_volunteers": 1, "pending_invites": 2},
+        ),
+        WorkflowEvent(
+            ts="2026-09-10T06:50:16.000Z",
+            kind=EventKind.agent_note,
+            source="shift-agent",
+            summary="Agent schedules final reminder assuming all three volunteers are confirmed.",
+            data={"reminder_status": "scheduled", "assumed_confirmed": 3},
+        ),
+    ]
+    return Incident(
+        id="scheduler-unconfirmed-volunteer-coverage",
+        title="Scheduler believed unconfirmed volunteers were confirmed",
+        domain="Operations scheduling",
+        status="needs_approval",
+        severity=Severity.medium,
+        user="Clinic operations lead",
+        summary=(
+            "A scheduling agent canceled backup outreach because local state showed full coverage, "
+            "but calendar reality only had one accepted volunteer."
+        ),
+        events=events,
+    )
+
+
 def all_incidents() -> list[Incident]:
-    return [tradeops_incident(), inbox_incident()]
+    return [tradeops_incident(), inbox_incident(), scheduler_incident()]
 
 
 def get_incident(incident_id: str) -> Incident | None:

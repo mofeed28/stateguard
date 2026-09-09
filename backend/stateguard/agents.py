@@ -94,6 +94,8 @@ def investigate(incident: Incident) -> InvestigationResult:
         return investigate_tradeops(incident)
     if incident.id == "inbox-undelivered-followup":
         return investigate_inbox(incident)
+    if incident.id == "scheduler-unconfirmed-volunteer-coverage":
+        return investigate_scheduler(incident)
     raise ValueError(f"Unknown incident: {incident.id}")
 
 
@@ -250,6 +252,89 @@ def investigate_inbox(incident: Incident) -> InvestigationResult:
         rationale=(
             "The workflow advanced from an internal sent flag, but external provider state proves the client "
             "never received the message."
+        ),
+    )
+    handoff = build_handoff(incident, mismatches, decision)
+    return InvestigationResult(
+        incident=incident,
+        agent_steps=agent_steps,
+        execution_trace=build_execution_trace(incident, agent_steps, len(mismatches)),
+        mismatches=mismatches,
+        decision=decision,
+        sanitized_handoff=handoff,
+        observability_events=build_observability_events(incident, agent_steps, len(mismatches)),
+    )
+
+
+def investigate_scheduler(incident: Incident) -> InvestigationResult:
+    agent_steps = [
+        AgentStep(
+            agent="Supervisor",
+            role="routing",
+            finding="Opened an operations scheduling drift incident and paused backup cancellation.",
+            confidence=0.97,
+        ),
+        AgentStep(
+            agent="Timeline Investigator",
+            role="timeline",
+            finding="Backup outreach was canceled before the calendar provider resolved two pending confirmations.",
+            confidence=0.93,
+        ),
+        AgentStep(
+            agent="Reality Reconciler",
+            role="reconciliation",
+            finding="Local schedule state says three volunteers are confirmed, while calendar state shows one accepted invite and two pending invites.",
+            confidence=0.95,
+        ),
+        AgentStep(
+            agent="Risk Sentinel",
+            role="risk",
+            finding="Coverage risk is medium because the clinic shift could become understaffed without backup outreach.",
+            confidence=0.9,
+        ),
+        AgentStep(
+            agent="Human Approval Agent",
+            role="approval",
+            finding="Prepared an approval card to resume backup outreach instead of silently canceling coverage safeguards.",
+            confidence=0.9,
+        ),
+        AgentStep(
+            agent="Handoff Writer",
+            role="reporting",
+            finding="Generated a sanitized scheduling handoff for the operations lead.",
+            confidence=0.92,
+        ),
+    ]
+    mismatches = [
+        Mismatch(
+            title="Schedule belief diverged from calendar acceptance state",
+            expected="Shift agent expected three confirmed volunteers for Saturday clinic intake.",
+            observed="Calendar snapshot showed one accepted volunteer and two pending invites.",
+            evidence_event_indexes=[0, 2, 3, 4],
+            severity=Severity.medium,
+        ),
+        Mismatch(
+            title="Backup outreach was canceled from incomplete confirmation data",
+            expected="Backup outreach should remain active until external confirmations are accepted.",
+            observed="Agent canceled backup outreach while provider responses were partial and rate-limited.",
+            evidence_event_indexes=[1, 2, 3],
+            severity=Severity.medium,
+        ),
+    ]
+    decision = DecisionCard(
+        title="Approval required: keep backup outreach active",
+        recommended_action=(
+            "Keep backup volunteer outreach active, refresh calendar invite status, and notify the operations lead "
+            "before canceling coverage safeguards."
+        ),
+        blocked_actions=[
+            "Do not cancel backup volunteer outreach automatically.",
+            "Do not mark the shift fully staffed from pending calendar invites.",
+            "Do not send final staffing confirmation until accepted invites are verified.",
+        ],
+        rationale=(
+            "The workflow treated pending external confirmations as accepted commitments. Human approval is required "
+            "because the mistaken action can leave a real-world shift understaffed."
         ),
     )
     handoff = build_handoff(incident, mismatches, decision)

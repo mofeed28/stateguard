@@ -16,6 +16,8 @@ In this replay, an execution agent believes the position is zero, so it plans a 
 
 The dashboard shows the investigation path: Supervisor, Timeline Investigator, Reality Reconciler, Risk Sentinel, Human Approval Agent, and Handoff Writer. The result is not just an alert. StateGuard produces structured output, blocks unsafe autonomous actions, and creates a sanitized handoff for the operator.
 
+The same pattern also appears in communications and scheduling: an email marked sent even though the provider rejected it, and a clinic shift marked covered even though calendar confirmations are still pending. The point is broader than trading. StateGuard is for any autonomous workflow where stale state can trigger bad real-world action.
+
 ## AWS And Strands
 
 The demo is running on AWS with a public Lambda Function URL. The production shape maps to Strands agents with custom tools, EventBridge or SQS for event ingestion, DynamoDB for incident state, and CloudWatch-style observability.

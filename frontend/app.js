@@ -33,6 +33,11 @@ const incidentNarrative = {
     reality: "Provider rejected the message",
     blocked: "Waiting days on an email nobody received",
   },
+  "scheduler-unconfirmed-volunteer-coverage": {
+    belief: "Clinic shift had three confirmed volunteers",
+    reality: "Calendar showed one accepted and two pending",
+    blocked: "Canceling backup outreach from stale coverage state",
+  },
 };
 
 function el(tag, className, text) {

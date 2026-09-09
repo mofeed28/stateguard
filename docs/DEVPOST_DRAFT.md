@@ -28,7 +28,7 @@ The main demo replays a high-risk automation incident:
 4. A second entry order is already live.
 5. StateGuard detects duplicate-entry risk and blocks further autonomous action behind a human approval card.
 
-The demo also includes a smaller client-communications replay: a follow-up agent moves on after marking an email as sent, while provider state shows the email was rejected. This shows the same belief-vs-reality reconciliation pattern outside finance.
+The demo also includes client-communications and operations-scheduling replays. A follow-up agent moves on after marking an email as sent, while provider state shows the email was rejected. A scheduling agent cancels backup outreach because it believes three volunteers are confirmed, while calendar reality shows one accepted invite and two pending invites. These show the same belief-vs-reality reconciliation pattern outside finance.
 
 ## How It Uses Strands Agents
 
@@ -56,4 +56,4 @@ Architecture diagram: `docs/architecture-diagram.html`
 
 Most agent safety demos focus on prompt guardrails. StateGuard focuses on operational truth: whether the agent's memory of the world still matches the world before it acts again. That makes the demo concrete, extensible across domains, and directly useful for people running real background agents.
 
-The project ships with a working AWS-hosted demo, a deterministic replay that judges can inspect without private credentials, visible Strands-style agent orchestration, structured output, approval gating, and production-shaped observability events.
+The project ships with a working AWS-hosted demo, deterministic replays across three domains, visible Strands-style agent orchestration, structured output, approval gating, and production-shaped observability events.
