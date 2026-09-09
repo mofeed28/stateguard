@@ -61,6 +61,8 @@ The app now shows the full investigation run:
 - Observability event stream
 - Sanitized handoff report
 
+The 90-second video outline lives in `docs/DEMO_SCRIPT.md`.
+
 ## Architecture
 
 StateGuard is built around Strands-style agent roles:

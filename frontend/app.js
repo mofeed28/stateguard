@@ -18,6 +18,22 @@ const tools = document.querySelector("#tools");
 const trace = document.querySelector("#trace");
 const structuredOutput = document.querySelector("#structuredOutput");
 const observability = document.querySelector("#observability");
+const beliefStatement = document.querySelector("#beliefStatement");
+const realityStatement = document.querySelector("#realityStatement");
+const blockedStatement = document.querySelector("#blockedStatement");
+
+const incidentNarrative = {
+  "tradeops-ambiguous-cancel-double-entry": {
+    belief: "Position was zero; fresh entry was safe",
+    reality: "Prior order filled after an ambiguous cancel",
+    blocked: "Another autonomous entry before reconciliation",
+  },
+  "inbox-undelivered-followup": {
+    belief: "Client follow-up was sent",
+    reality: "Provider rejected the message",
+    blocked: "Waiting days on an email nobody received",
+  },
+};
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -49,6 +65,14 @@ async function loadReplay({ animate = false } = {}) {
   decisionText.textContent = result.decision.rationale;
   handoff.textContent = result.sanitized_handoff;
   structuredOutput.textContent = JSON.stringify(structuredResult, null, 2);
+  const narrative = incidentNarrative[incidentId] || {
+    belief: result.incident.summary,
+    reality: result.mismatches[0]?.observed || "External state requires review",
+    blocked: result.decision.blocked_actions[0] || result.decision.recommended_action,
+  };
+  beliefStatement.textContent = narrative.belief;
+  realityStatement.textContent = narrative.reality;
+  blockedStatement.textContent = narrative.blocked;
 
   for (const event of result.incident.events) {
     if (animate) await pause(170);

@@ -33,13 +33,28 @@
         <header class="topbar">
           <div>
             <p class="eyebrow">High-risk automation</p>
-            <h2>Catch state drift before autonomous actions cause damage</h2>
+            <h2>Agents can act on stale beliefs. StateGuard checks reality first.</h2>
           </div>
           <div class="actions">
             <select id="incidentSelect" aria-label="Incident"></select>
             <button id="replayBtn" class="primary">Replay Incident</button>
           </div>
         </header>
+
+        <section class="case-strip" aria-label="Belief reality summary">
+          <article>
+            <span>Agent believed</span>
+            <strong id="beliefStatement">Position was safe to enter</strong>
+          </article>
+          <article>
+            <span>Reality showed</span>
+            <strong id="realityStatement">Prior order could still fill</strong>
+          </article>
+          <article>
+            <span>StateGuard blocked</span>
+            <strong id="blockedStatement">Unsafe autonomous follow-up</strong>
+          </article>
+        </section>
 
         <section class="metrics">
           <article>
@@ -58,6 +73,30 @@
             <span>Demo Mode</span>
             <strong>Sanitized</strong>
           </article>
+        </section>
+
+        <section class="panel demo-flow-panel">
+          <div class="panel-head">
+            <h3>Demo Flow</h3>
+            <span>90-second path</span>
+          </div>
+          <div class="demo-flow">
+            <article>
+              <span>01</span>
+              <strong>Autonomous belief</strong>
+              <p>The workflow moves forward from its internal state.</p>
+            </article>
+            <article>
+              <span>02</span>
+              <strong>External reality</strong>
+              <p>Provider events prove the world changed underneath it.</p>
+            </article>
+            <article>
+              <span>03</span>
+              <strong>Risk gate</strong>
+              <p>StateGuard blocks unsafe action and asks the human only when needed.</p>
+            </article>
+          </div>
         </section>
 
         <section class="grid">
