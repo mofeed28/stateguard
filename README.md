@@ -101,7 +101,7 @@ Optional live LLM mode is deliberately disabled by default. To enable it, config
 
 ```bash
 STATEGUARD_USE_STRANDS_LLM=1
-STATEGUARD_BEDROCK_MODEL_ID=us.openai.gpt-6-astra
+STATEGUARD_BEDROCK_MODEL_ID=amazon.nova-micro-v1:0
 STATEGUARD_LIVE_DEMO_KEY=replace-with-a-random-demo-key
 STATEGUARD_LIVE_TIMEOUT_SECONDS=18
 AWS_REGION=us-east-1
