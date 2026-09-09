@@ -1,9 +1,16 @@
 from fastapi.testclient import TestClient
 
+import stateguard.agents as agents
 from stateguard.app import app
 
 
 client = TestClient(app)
+
+
+def test_live_process_start_method_uses_spawn_without_fork(monkeypatch):
+    monkeypatch.delattr(agents.os, "fork", raising=False)
+
+    assert agents._live_process_start_method() == "spawn"
 
 
 def test_replay_detects_high_risk_mismatches():

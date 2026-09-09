@@ -614,6 +614,10 @@ def _run_live_strands_worker(
         conn.close()
 
 
+def _live_process_start_method() -> str:
+    return "fork" if hasattr(os, "fork") else "spawn"
+
+
 def simulate_live_mismatch(payload: CustomMismatchRequest) -> CustomMismatchResponse:
     fallback = simulate_custom_mismatch(payload)
     if os.getenv("STATEGUARD_USE_STRANDS_LLM") != "1":
@@ -630,7 +634,7 @@ def simulate_live_mismatch(payload: CustomMismatchRequest) -> CustomMismatchResp
     try:
         import multiprocessing
 
-        ctx = multiprocessing.get_context("fork")
+        ctx = multiprocessing.get_context(_live_process_start_method())
         parent_conn, child_conn = ctx.Pipe(duplex=False)
         process = ctx.Process(
             target=_run_live_strands_worker,
