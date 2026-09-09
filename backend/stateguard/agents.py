@@ -557,6 +557,143 @@ def simulate_custom_mismatch(payload: CustomMismatchRequest) -> CustomMismatchRe
     )
 
 
+def _run_live_strands_worker(
+    payload_data: dict[str, str], model_id: str, region_name: str, conn
+) -> None:
+    try:
+        from botocore.config import Config
+        from strands.models.bedrock import BedrockModel
+
+        payload = CustomMismatchRequest.model_validate(payload_data)
+        model = BedrockModel(
+            model_id=model_id,
+            region_name=region_name,
+            boto_client_config=Config(connect_timeout=3, read_timeout=10, retries={"max_attempts": 1}),
+            temperature=0,
+            max_tokens=800,
+        )
+        agent = Agent(
+            model=model,
+            system_prompt=(
+                "You are StateGuard's live reconciliation analyst. Return structured output only. "
+                "Favor safe approval gates when agent belief conflicts with external reality."
+            ),
+            tools=[
+                load_incident_events,
+                detect_state_mismatches,
+                classify_automation_risk,
+                generate_sanitized_handoff,
+            ],
+            callback_handler=None,
+        )
+        prompt = (
+            "Analyze this custom state mismatch.\n"
+            f"Domain: {payload.domain}\n"
+            f"Agent belief: {payload.agent_belief}\n"
+            f"External reality: {payload.external_reality}\n"
+            f"Risky next action: {payload.risky_action}\n"
+            "Return an approval-required StateGuard structured decision."
+        )
+        live_output = agent(
+            prompt,
+            structured_output_model=StructuredInvestigationOutput,
+        )
+        structured = getattr(live_output, "structured_output", None)
+        if structured is None:
+            structured = live_output
+        structured = StructuredInvestigationOutput.model_validate(structured)
+        conn.send({"ok": True, "structured_output": structured.model_dump()})
+    except Exception as exc:  # pragma: no cover - depends on optional runtime provider setup.
+        conn.send(
+            {
+                "ok": False,
+                "error": f"{exc.__class__.__name__}: {exc}",
+            }
+        )
+    finally:
+        conn.close()
+
+
+def simulate_live_mismatch(payload: CustomMismatchRequest) -> CustomMismatchResponse:
+    fallback = simulate_custom_mismatch(payload)
+    if os.getenv("STATEGUARD_USE_STRANDS_LLM") != "1":
+        return fallback.model_copy(
+            update={"live_error": "Live Strands mode is disabled; deterministic simulator returned."}
+        )
+    if Agent is None:
+        return fallback.model_copy(
+            update={"live_error": "Strands Agent import is unavailable; deterministic simulator returned."}
+        )
+
+    model_id = os.getenv("STATEGUARD_BEDROCK_MODEL_ID", "amazon.nova-micro-v1:0")
+    timeout_seconds = int(os.getenv("STATEGUARD_LIVE_TIMEOUT_SECONDS", "18"))
+    try:
+        import multiprocessing
+
+        ctx = multiprocessing.get_context("fork")
+        parent_conn, child_conn = ctx.Pipe(duplex=False)
+        process = ctx.Process(
+            target=_run_live_strands_worker,
+            args=(
+                payload.model_dump(),
+                model_id,
+                os.getenv("AWS_REGION", "us-east-1"),
+                child_conn,
+            ),
+        )
+        process.start()
+        child_conn.close()
+        if parent_conn.poll(timeout_seconds):
+            message = parent_conn.recv()
+            process.join(timeout=1)
+        else:
+            process.terminate()
+            process.join(timeout=1)
+            if process.is_alive():
+                process.kill()
+                process.join(timeout=1)
+            return fallback.model_copy(
+                update={
+                    "live_model": model_id,
+                    "live_error": (
+                        f"Live Strands call timed out after {timeout_seconds} seconds; "
+                        "deterministic simulator returned."
+                    ),
+                }
+            )
+        if not message.get("ok"):
+            return fallback.model_copy(
+                update={
+                    "live_model": model_id,
+                    "live_error": (
+                        "Live Strands call failed; deterministic simulator returned. "
+                        f"{message.get('error', 'Unknown error')}"
+                    ),
+                }
+            )
+        structured = StructuredInvestigationOutput.model_validate(message["structured_output"])
+        result = fallback.result.model_copy(update={"decision": fallback.result.decision.model_copy(update={
+            "recommended_action": structured.recommended_action,
+            "blocked_actions": structured.blocked_actions,
+        })})
+        return fallback.model_copy(
+            update={
+                "result": result,
+                "structured_output": structured,
+                "live_mode": True,
+                "live_model": model_id,
+                "live_error": None,
+            }
+        )
+    except Exception as exc:  # pragma: no cover - depends on Bedrock runtime/model access.
+        return fallback.model_copy(
+            update={
+                "live_model": model_id,
+                "live_error": f"Live Strands call failed; deterministic simulator returned. {exc.__class__.__name__}: {exc}",
+            }
+        )
+
+
 def build_handoff(
     incident: Incident, mismatches: list[Mismatch], decision: DecisionCard
 ) -> str:

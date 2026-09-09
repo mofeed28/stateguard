@@ -328,6 +328,18 @@ select {
   align-self: end;
 }
 
+.sim-actions {
+  align-self: end;
+  display: grid;
+  gap: 8px;
+}
+
+.compact {
+  min-height: 38px;
+  margin-top: 0;
+  padding: 0 12px;
+}
+
 input,
 textarea {
   width: 100%;
@@ -392,6 +404,11 @@ textarea {
   grid-column: 1 / -1;
   display: grid;
   gap: 8px;
+}
+
+.sim-decision small,
+.live-note {
+  color: var(--muted);
 }
 
 .sim-decision code {

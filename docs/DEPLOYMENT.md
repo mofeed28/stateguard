@@ -20,8 +20,20 @@ The active AWS deployment uses:
 - Adapter: Mangum
 - Function: `stateguard`
 - Function URL auth: public / none
+- Optional live Strands mode: disabled by default; enable only after Bedrock model access and Lambda IAM permissions are confirmed
 
 The deployment bundle must be built with Python 3.11-compatible Linux wheels. From a non-Lambda Python version, use a platform-targeted install, then copy the app package and frontend assets into the zip root.
+
+Optional live analysis environment variables:
+
+```bash
+STATEGUARD_USE_STRANDS_LLM=1
+STATEGUARD_BEDROCK_MODEL_ID=amazon.nova-micro-v1:0
+STATEGUARD_LIVE_TIMEOUT_SECONDS=18
+AWS_REGION=us-east-1
+```
+
+The Lambda execution role also needs permission for `bedrock:InvokeModel` and `bedrock:InvokeModelWithResponseStream` on the chosen model.
 
 ## App Runner Path
 

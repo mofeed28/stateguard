@@ -23,6 +23,15 @@ curl -fsS \
     "risky_action": "Close the collection task and stop follow-up reminders."
   }' \
   "$base_url/api/simulate-mismatch" >/dev/null
+curl -fsS \
+  -H "Content-Type: application/json" \
+  -d '{
+    "domain": "Invoice collection",
+    "agent_belief": "Agent believes invoice #104 was paid and marks the account as settled.",
+    "external_reality": "Bank API shows no settled payment and the invoice remains unpaid.",
+    "risky_action": "Close the collection task and stop follow-up reminders."
+  }' \
+  "$base_url/api/simulate-mismatch/live" >/dev/null
 
 echo
 echo "StateGuard smoke checks passed for $base_url"

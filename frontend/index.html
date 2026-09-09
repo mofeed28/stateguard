@@ -121,7 +121,10 @@
               Risky next action
               <textarea id="simAction">Close the collection task and stop follow-up reminders.</textarea>
             </label>
-            <button class="primary" type="submit">Simulate Mismatch</button>
+            <div class="sim-actions">
+              <button class="primary" type="submit">Simulate Mismatch</button>
+              <button id="liveSimBtn" class="secondary compact" type="button">Live Strands Analysis</button>
+            </div>
           </form>
           <div id="simulationResult" class="simulation-result" aria-live="polite"></div>
         </section>

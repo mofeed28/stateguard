@@ -114,3 +114,6 @@ class CustomMismatchResponse(BaseModel):
     structured_output: StructuredInvestigationOutput
     without_stateguard: str
     with_stateguard: str
+    live_mode: bool = False
+    live_model: str | None = None
+    live_error: str | None = None

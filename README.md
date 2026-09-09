@@ -61,6 +61,7 @@ The app now shows the full investigation run:
 - Observability event stream
 - Sanitized handoff report
 - Custom mismatch simulator with before/after outcome
+- Optional live Strands analysis endpoint with deterministic fallback
 
 The 90-second video outline lives in `docs/DEMO_SCRIPT.md`, and the paste-ready Devpost packet lives in `docs/SUBMISSION_PACKET.md`.
 
@@ -92,8 +93,18 @@ Demo API surfaces:
 - `/api/incidents/{incident_id}/structured-output` returns a Pydantic-validated decision object suitable for Strands structured output.
 - `/api/incidents/{incident_id}/observability` returns production-style events for CloudWatch/OpenTelemetry mapping.
 - `/api/simulate-mismatch` accepts custom belief/reality/action text and returns a structured approval decision.
+- `/api/simulate-mismatch/live` runs the same request through optional live Strands/Bedrock analysis when enabled, and falls back safely when disabled or unavailable.
 
 The current demo is deterministic and fixture-backed so judges can run it without exchange keys or private credentials. Live adapters can be added for trading platforms, email providers, calendars, payment systems, and volunteer scheduling tools.
+
+Optional live LLM mode is deliberately disabled by default. To enable it, configure Bedrock model access and set:
+
+```bash
+STATEGUARD_USE_STRANDS_LLM=1
+STATEGUARD_BEDROCK_MODEL_ID=amazon.nova-micro-v1:0
+STATEGUARD_LIVE_TIMEOUT_SECONDS=18
+AWS_REGION=us-east-1
+```
 
 ## Hackathon Fit
 

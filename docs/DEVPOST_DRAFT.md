@@ -56,4 +56,4 @@ Architecture diagram: `docs/architecture-diagram.html`
 
 Most agent safety demos focus on prompt guardrails. StateGuard focuses on operational truth: whether the agent's memory of the world still matches the world before it acts again. That makes the demo concrete, extensible across domains, and directly useful for people running real background agents.
 
-The project ships with a working AWS-hosted demo, deterministic replays across three domains, a custom mismatch simulator, visible Strands-style agent orchestration, structured output, approval gating, and production-shaped observability events.
+The project ships with a working AWS-hosted demo, deterministic replays across three domains, a custom mismatch simulator, optional live Strands analysis with safe fallback, visible Strands-style agent orchestration, structured output, approval gating, and production-shaped observability events.

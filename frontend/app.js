@@ -27,6 +27,7 @@ const simDomain = document.querySelector("#simDomain");
 const simBelief = document.querySelector("#simBelief");
 const simReality = document.querySelector("#simReality");
 const simAction = document.querySelector("#simAction");
+const liveSimBtn = document.querySelector("#liveSimBtn");
 
 const incidentNarrative = {
   "tradeops-ambiguous-cancel-double-entry": {
@@ -191,35 +192,58 @@ async function approve() {
   approvalResult.textContent = JSON.stringify(result, null, 2);
 }
 
+async function runSimulation(path) {
+  simulationResult.innerHTML = "";
+  const buttons = simulatorForm.querySelectorAll("button");
+  buttons.forEach((button) => {
+    button.disabled = true;
+  });
+  try {
+    const response = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        domain: simDomain.value,
+        agent_belief: simBelief.value,
+        external_reality: simReality.value,
+        risky_action: simAction.value,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Simulation failed with ${response.status}`);
+    }
+    const payload = await response.json();
+    const result = payload.result;
+    const before = el("article", "before-after before");
+    before.append(el("span", "", "Without StateGuard"), el("p", "", payload.without_stateguard));
+    const after = el("article", "before-after after");
+    after.append(el("span", "", "With StateGuard"), el("p", "", payload.with_stateguard));
+    const mode = payload.live_mode ? `live / ${payload.live_model}` : "deterministic fallback";
+    const decision = el("article", "sim-decision");
+    decision.append(
+      el("strong", "", result.decision.title),
+      el("small", "", mode),
+      el("p", "", result.decision.rationale),
+      el("code", "", `structured_output: ${JSON.stringify(payload.structured_output)}`)
+    );
+    if (payload.live_error) {
+      decision.append(el("p", "live-note", payload.live_error));
+    }
+    simulationResult.append(before, after, decision);
+  } catch (error) {
+    simulationResult.append(
+      el("article", "sim-decision", `Simulation unavailable: ${error.message}`)
+    );
+  } finally {
+    buttons.forEach((button) => {
+      button.disabled = false;
+    });
+  }
+}
+
 async function simulateMismatch(event) {
   event.preventDefault();
-  simulationResult.innerHTML = "";
-  const submit = simulatorForm.querySelector("button");
-  submit.disabled = true;
-  const response = await fetch("/api/simulate-mismatch", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      domain: simDomain.value,
-      agent_belief: simBelief.value,
-      external_reality: simReality.value,
-      risky_action: simAction.value,
-    }),
-  });
-  const payload = await response.json();
-  const result = payload.result;
-  const before = el("article", "before-after before");
-  before.append(el("span", "", "Without StateGuard"), el("p", "", payload.without_stateguard));
-  const after = el("article", "before-after after");
-  after.append(el("span", "", "With StateGuard"), el("p", "", payload.with_stateguard));
-  const decision = el("article", "sim-decision");
-  decision.append(
-    el("strong", "", result.decision.title),
-    el("p", "", result.decision.rationale),
-    el("code", "", `structured_output: ${JSON.stringify(payload.structured_output)}`)
-  );
-  simulationResult.append(before, after, decision);
-  submit.disabled = false;
+  await runSimulation("/api/simulate-mismatch");
 }
 
 function pause(ms) {
@@ -229,6 +253,7 @@ function pause(ms) {
 replayBtn.addEventListener("click", () => loadReplay({ animate: true }));
 approveBtn.addEventListener("click", approve);
 simulatorForm.addEventListener("submit", simulateMismatch);
+liveSimBtn.addEventListener("click", () => runSimulation("/api/simulate-mismatch/live"));
 incidentSelect.addEventListener("change", () => {
   incidentId = incidentSelect.value;
   loadReplay();
