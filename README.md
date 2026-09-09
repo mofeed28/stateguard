@@ -63,7 +63,7 @@ The app now shows the full investigation run:
 - Custom mismatch simulator with before/after outcome
 - Optional live Strands analysis endpoint with deterministic fallback
 
-The 90-second video outline lives in `docs/DEMO_SCRIPT.md`, and the paste-ready Devpost packet lives in `docs/SUBMISSION_PACKET.md`.
+The 90-second video outline lives in `docs/DEMO_SCRIPT.md`, the paste-ready Devpost packet lives in `docs/SUBMISSION_PACKET.md`, and the final submission runbook lives in `docs/FINAL_SUBMISSION_RUNBOOK.md`.
 
 ## Architecture
 
