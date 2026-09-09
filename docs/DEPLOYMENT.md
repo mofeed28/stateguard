@@ -59,7 +59,7 @@ curl http://127.0.0.1:8787/api/health
 
 ## Submission Notes
 
-Use the App Runner URL for:
+Use the Lambda Function URL for:
 
 - Devpost demo URL
 - Demo video
