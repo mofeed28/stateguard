@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from mangum import Mangum
 
 from .agents import ROLES, build_structured_output, investigate
 from .fixtures import adapter_examples, all_incidents, get_incident
@@ -111,3 +112,6 @@ app.mount("/assets", StaticFiles(directory=FRONTEND_DIR), name="assets")
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse(f"{FRONTEND_DIR}/index.html")
+
+
+handler = Mangum(app)
