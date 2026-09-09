@@ -34,7 +34,7 @@ The project also includes client-communications and operations-scheduling incide
 
 Judges can also use the custom mismatch simulator to enter their own domain, agent belief, external reality, and risky next action. StateGuard returns a structured approval decision and a before/after comparison showing what happens without the safety layer versus with it.
 
-The simulator also includes an optional Live Strands Analysis path. The stable demo does not depend on live LLM output, but the code can run a Strands Agent against Bedrock when model access and Lambda permissions are enabled.
+The simulator also includes an optional Live Strands Analysis path. The stable demo does not depend on live LLM output, but the code can run a Strands Agent against Bedrock when model access and Lambda permissions are enabled. Paid live calls are protected behind a demo key on the public deployment.
 
 ## Why It Matters
 

@@ -20,7 +20,7 @@ The same pattern also appears in communications and scheduling: an email marked 
 
 Now switch to the custom simulator. Enter a simple invoice mismatch: the agent believes invoice #104 is paid, but the bank API says it is unpaid. StateGuard creates the same approval-gated decision path from fresh input, which shows the product is not only a set of pre-cooked replays.
 
-Mention that the Live Strands Analysis button is optional. The core demo remains deterministic for reliability, while the live path can call a Strands Agent with Bedrock when model access is enabled.
+Mention that the Live Strands Analysis button is optional. The core demo remains deterministic for reliability, while the live path can call a Strands Agent with Bedrock when model access is enabled. Paid live calls are protected by a demo key so the public URL cannot drain credits.
 
 ## AWS And Strands
 

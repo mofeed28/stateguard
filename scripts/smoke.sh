@@ -11,11 +11,16 @@ fi
 "$python_bin" -m pytest -q
 
 base_url="${STATEGUARD_BASE_URL:-http://127.0.0.1:8787}"
+live_headers=()
+if [[ -n "${STATEGUARD_LIVE_DEMO_KEY:-}" ]]; then
+  live_headers=(-H "X-StateGuard-Live-Key: $STATEGUARD_LIVE_DEMO_KEY")
+fi
 curl -fsS "$base_url/api/health"
 curl -fsS "$base_url/api/incidents/tradeops-ambiguous-cancel-double-entry/structured-output" >/dev/null
 curl -fsS "$base_url/api/incidents/tradeops-ambiguous-cancel-double-entry/observability" >/dev/null
 curl -fsS \
   -H "Content-Type: application/json" \
+  "${live_headers[@]}" \
   -d '{
     "domain": "Invoice collection",
     "agent_belief": "Agent believes invoice #104 was paid and marks the account as settled.",

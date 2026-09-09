@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from fastapi import FastAPI
+import hmac
+import os
+
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -114,7 +117,18 @@ def simulate_mismatch(payload: CustomMismatchRequest) -> CustomMismatchResponse:
 
 
 @app.post("/api/simulate-mismatch/live")
-def simulate_mismatch_live(payload: CustomMismatchRequest) -> CustomMismatchResponse:
+def simulate_mismatch_live(
+    payload: CustomMismatchRequest,
+    x_stateguard_live_key: str | None = Header(default=None),
+) -> CustomMismatchResponse:
+    if os.getenv("STATEGUARD_USE_STRANDS_LLM") == "1":
+        live_key = os.getenv("STATEGUARD_LIVE_DEMO_KEY")
+        if not live_key:
+            raise HTTPException(status_code=403, detail="live_demo_key_not_configured")
+        if not x_stateguard_live_key or not hmac.compare_digest(
+            x_stateguard_live_key, live_key
+        ):
+            raise HTTPException(status_code=403, detail="live_demo_key_required")
     return simulate_live_mismatch(payload)
 
 

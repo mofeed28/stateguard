@@ -199,9 +199,24 @@ async function runSimulation(path) {
     button.disabled = true;
   });
   try {
+    const headers = { "Content-Type": "application/json" };
+    if (path.endsWith("/live")) {
+      let liveKey = window.localStorage.getItem("stateguardLiveDemoKey") || "";
+      if (!liveKey) {
+        liveKey = window.prompt("Live demo key");
+        if (!liveKey) {
+          simulationResult.append(
+            el("article", "sim-decision", "Live analysis locked to protect demo credits.")
+          );
+          return;
+        }
+        window.localStorage.setItem("stateguardLiveDemoKey", liveKey);
+      }
+      headers["X-StateGuard-Live-Key"] = liveKey;
+    }
     const response = await fetch(path, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         domain: simDomain.value,
         agent_belief: simBelief.value,
@@ -209,6 +224,10 @@ async function runSimulation(path) {
         risky_action: simAction.value,
       }),
     });
+    if (response.status === 403 && path.endsWith("/live")) {
+      window.localStorage.removeItem("stateguardLiveDemoKey");
+      throw new Error("Live analysis locked to protect demo credits. Re-enter the demo key.");
+    }
     if (!response.ok) {
       throw new Error(`Simulation failed with ${response.status}`);
     }

@@ -143,3 +143,21 @@ def test_live_mismatch_endpoint_falls_back_when_disabled():
     assert payload["live_mode"] is False
     assert "disabled" in payload["live_error"]
     assert payload["structured_output"]["approval_required"] is True
+
+
+def test_live_mismatch_endpoint_requires_key_when_live_enabled(monkeypatch):
+    monkeypatch.setenv("STATEGUARD_USE_STRANDS_LLM", "1")
+    monkeypatch.setenv("STATEGUARD_LIVE_DEMO_KEY", "demo-secret")
+
+    response = client.post(
+        "/api/simulate-mismatch/live",
+        json={
+            "domain": "Invoice collection",
+            "agent_belief": "Agent believes invoice #104 was paid and marks the account as settled.",
+            "external_reality": "Bank API shows no settled payment and the invoice remains unpaid.",
+            "risky_action": "Close the collection task and stop follow-up reminders.",
+        },
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "live_demo_key_required"
