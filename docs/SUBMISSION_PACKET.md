@@ -20,6 +20,8 @@ https://gzmrlkrayb3oz3qe22g2v5tv7e0qoqfa.lambda-url.us-east-1.on.aws/
 
 https://github.com/mofeed28/stateguard
 
+Final submission note: Devpost requires this repository URL to be public. The repo can remain private during prep, then be flipped public before submitting.
+
 Architecture diagram: `docs/architecture-diagram.html`
 
 ## What It Does

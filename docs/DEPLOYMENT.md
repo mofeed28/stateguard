@@ -5,7 +5,7 @@ StateGuard is deployed on AWS Lambda Function URL for the hackathon demo URL. Ap
 ## Canonical Repo
 
 - Repo: `https://github.com/mofeed28/stateguard`
-- Visibility: private until final submission
+- Visibility: private during prep; Devpost requires this repo to be public before final submission
 - Branch: `main`
 - Health check: `/api/health`
 - Runtime port: `8787` locally, or `$PORT` in hosted environments
@@ -65,4 +65,4 @@ Use the Lambda Function URL for:
 - Demo video
 - README live demo section after deployment
 
-Keep the GitHub repo private until the submission is otherwise ready, then decide whether the hackathon requires public source access.
+The GitHub repo can stay private during prep, but Devpost requires a public source-code URL before final submission. Flip `mofeed28/stateguard` public only when the submission package is ready.

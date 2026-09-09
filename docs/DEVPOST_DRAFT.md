@@ -50,6 +50,8 @@ Small teams and professionals who rely on autonomous agents or bots but do not h
 
 StateGuard can run on Amazon Bedrock/AgentCore with EventBridge for event ingestion, SQS for investigation jobs, DynamoDB for incident state, ECS/Lambda for the API and workers, and CloudWatch/OpenTelemetry-style events for production operations.
 
+Architecture diagram: `docs/architecture-diagram.html`
+
 ## Why It Can Win
 
 Most agent safety demos focus on prompt guardrails. StateGuard focuses on operational truth: whether the agent's memory of the world still matches the world before it acts again. That makes the demo concrete, extensible across domains, and directly useful for people running real background agents.
