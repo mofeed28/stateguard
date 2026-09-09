@@ -16,12 +16,12 @@
             <p>Belief vs reality reconciliation</p>
           </div>
         </div>
-        <nav>
-          <button class="nav active">Incident Replay</button>
-          <button class="nav">Agent Run</button>
-          <button class="nav">Observability</button>
-          <button class="nav">Adapters</button>
-          <button class="nav">Architecture</button>
+        <nav id="sidebarNav">
+          <button class="nav active" data-target="#replaySection">Incident Replay</button>
+          <button class="nav" data-target="#agentRunSection">Agent Run</button>
+          <button class="nav" data-target="#observabilitySection">Observability</button>
+          <button class="nav" data-target="#adapters">Adapters</button>
+          <button class="nav" data-target="#architectureSection">Architecture</button>
         </nav>
         <section class="status">
           <span class="dot"></span>
@@ -30,7 +30,7 @@
       </aside>
 
       <section class="workspace">
-        <header class="topbar">
+        <header class="topbar" id="replaySection">
           <div>
             <p class="eyebrow">High-risk automation</p>
             <h2>Agents can act on stale beliefs. StateGuard checks reality first.</h2>
@@ -173,7 +173,7 @@
           </article>
         </section>
 
-        <section class="run-grid">
+        <section class="run-grid" id="agentRunSection">
           <article class="panel trace-panel">
             <div class="panel-head">
               <h3>Strands Workflow Trace</h3>
@@ -191,7 +191,7 @@
           </article>
         </section>
 
-        <section class="panel observability-panel">
+        <section class="panel observability-panel" id="observabilitySection">
           <div class="panel-head">
             <h3>Observability Events</h3>
             <span>production signal</span>
@@ -199,7 +199,7 @@
           <div id="observability" class="event-list"></div>
         </section>
 
-        <section class="tabs">
+        <section class="tabs" id="architectureSection">
           <article class="panel tools-panel">
             <div class="panel-head">
               <h3>Strands Tools</h3>

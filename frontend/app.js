@@ -269,6 +269,50 @@ function pause(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const navButtons = Array.from(document.querySelectorAll(".sidebar nav .nav"));
+
+navButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    navButtons.forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    const targetSelector = btn.getAttribute("data-target");
+    if (targetSelector) {
+      const targetEl = document.querySelector(targetSelector);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  });
+});
+
+function setupScrollSpy() {
+  const items = navButtons
+    .map((btn) => {
+      const selector = btn.getAttribute("data-target");
+      return { btn, el: selector ? document.querySelector(selector) : null };
+    })
+    .filter((item) => item.el !== null);
+
+  if (!("IntersectionObserver" in window)) return;
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const matched = items.find((item) => item.el === entry.target);
+          if (matched) {
+            navButtons.forEach((b) => b.classList.remove("active"));
+            matched.btn.classList.add("active");
+          }
+        }
+      });
+    },
+    { rootMargin: "-15% 0px -60% 0px" }
+  );
+
+  items.forEach((item) => observer.observe(item.el));
+}
+
 replayBtn.addEventListener("click", () => loadReplay({ animate: true }));
 approveBtn.addEventListener("click", approve);
 simulatorForm.addEventListener("submit", simulateMismatch);
@@ -281,3 +325,5 @@ incidentSelect.addEventListener("change", () => {
 loadIncidents().then(loadReplay);
 loadAdapters();
 loadTools();
+setupScrollSpy();
+
