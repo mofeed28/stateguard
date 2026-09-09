@@ -1,6 +1,6 @@
 # Deployment
 
-StateGuard should use AWS App Runner for the hackathon demo URL. It is the fastest AWS-native path for a public HTTPS endpoint while keeping the production story aligned with AgentCore, Bedrock, EventBridge, SQS, DynamoDB, and CloudWatch.
+StateGuard is deployed on AWS Lambda Function URL for the hackathon demo URL. App Runner was the first target, but AWS returned an internal system error during provisioning on this account after the service built successfully. Lambda Function URL gives the same AWS-hosted public HTTPS demo path without waiting on App Runner support.
 
 ## Canonical Repo
 
@@ -9,16 +9,29 @@ StateGuard should use AWS App Runner for the hackathon demo URL. It is the faste
 - Branch: `main`
 - Health check: `/api/health`
 - Runtime port: `8787` locally, or `$PORT` in hosted environments
+- Live URL: `https://gzmrlkrayb3oz3qe22g2v5tv7e0qoqfa.lambda-url.us-east-1.on.aws/`
+
+## Lambda Function URL Path
+
+The active AWS deployment uses:
+
+- Runtime: Python 3.11
+- Handler: `stateguard.app.handler`
+- Adapter: Mangum
+- Function: `stateguard`
+- Function URL auth: public / none
+
+The deployment bundle must be built with Python 3.11-compatible Linux wheels. From a non-Lambda Python version, use a platform-targeted install, then copy the app package and frontend assets into the zip root.
 
 ## App Runner Path
 
-Recommended path:
+Alternative container path:
 
 1. Create an App Runner service.
 2. Source from `mofeed28/stateguard`.
 3. Use branch `main`.
 4. Build from the repository Dockerfile, or build and push the image to ECR if the console path requires an image source.
-5. Set service port to `8787` unless App Runner injects `$PORT`.
+5. Set service port to `8787` for Docker or `8080` for App Runner managed Python.
 6. Set health check path to `/api/health`.
 7. Keep environment variables empty for the demo.
 

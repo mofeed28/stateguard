@@ -17,6 +17,12 @@ StateGuard is the safety layer for that gap.
 
 ## Demo
 
+Live AWS demo:
+
+```text
+https://gzmrlkrayb3oz3qe22g2v5tv7e0qoqfa.lambda-url.us-east-1.on.aws/
+```
+
 Run locally:
 
 ```bash
@@ -100,7 +106,7 @@ Official resources used for alignment:
 
 ## Deployment
 
-The repo includes a production Dockerfile and App Runner notes in `docs/DEPLOYMENT.md`. The intended hackathon path is AWS App Runner for the public HTTPS demo URL, with AgentCore/Bedrock/EventBridge/DynamoDB described as the production architecture path.
+The live hackathon demo is deployed on AWS Lambda Function URL. The repo also includes a production Dockerfile and App Runner notes in `docs/DEPLOYMENT.md`, but App Runner returned an AWS-side internal system error during provisioning on this account. AgentCore/Bedrock/EventBridge/DynamoDB remain the production architecture path.
 
 ## License
 
