@@ -304,6 +304,101 @@ select {
   line-height: 1.45;
 }
 
+.simulator-panel {
+  min-height: auto;
+}
+
+.simulator-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) repeat(3, minmax(180px, 1fr)) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.simulator-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.simulator-form button {
+  align-self: end;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #ffffff;
+  color: var(--ink);
+  font: inherit;
+  text-transform: none;
+}
+
+input {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+textarea {
+  min-height: 94px;
+  padding: 10px 12px;
+  resize: vertical;
+  line-height: 1.35;
+}
+
+.simulation-result {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.before-after,
+.sim-decision {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 14px;
+  background: #fbfcfd;
+}
+
+.before {
+  border-left: 5px solid var(--red);
+}
+
+.after {
+  border-left: 5px solid var(--green);
+}
+
+.before-after span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.before-after p,
+.sim-decision p {
+  line-height: 1.45;
+}
+
+.sim-decision {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+}
+
+.sim-decision code {
+  color: var(--violet);
+  overflow-wrap: anywhere;
+}
+
 .timeline-panel {
   grid-row: span 2;
 }
@@ -539,7 +634,8 @@ pre {
   .topbar,
   .grid,
   .run-grid,
-  .tabs {
+  .tabs,
+  .simulator-form {
     grid-template-columns: 1fr;
     display: grid;
   }
@@ -557,6 +653,7 @@ pre {
   .case-strip,
   .metrics,
   .demo-flow,
+  .simulation-result,
   .adapter-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -571,6 +668,7 @@ pre {
   .case-strip,
   .metrics,
   .demo-flow,
+  .simulation-result,
   .adapter-strip {
     grid-template-columns: 1fr;
   }

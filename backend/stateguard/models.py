@@ -100,3 +100,17 @@ class StructuredInvestigationOutput(BaseModel):
     recommended_action: str
     blocked_actions: list[str]
     confidence: float = Field(ge=0, le=1)
+
+
+class CustomMismatchRequest(BaseModel):
+    domain: str = Field(min_length=2, max_length=80)
+    agent_belief: str = Field(min_length=8, max_length=500)
+    external_reality: str = Field(min_length=8, max_length=500)
+    risky_action: str = Field(min_length=8, max_length=300)
+
+
+class CustomMismatchResponse(BaseModel):
+    result: InvestigationResult
+    structured_output: StructuredInvestigationOutput
+    without_stateguard: str
+    with_stateguard: str

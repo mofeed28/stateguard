@@ -105,3 +105,23 @@ def test_observability_events_show_production_trace():
         "autonomous_action.blocked",
         "operator_handoff.ready",
     }
+
+
+def test_custom_mismatch_simulator_returns_structured_decision():
+    response = client.post(
+        "/api/simulate-mismatch",
+        json={
+            "domain": "Invoice collection",
+            "agent_belief": "Agent believes invoice #104 was paid and marks the account as settled.",
+            "external_reality": "Bank API shows no settled payment and the invoice remains unpaid.",
+            "risky_action": "Close the collection task and stop follow-up reminders.",
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["result"]["incident"]["id"] == "custom-simulated-mismatch"
+    assert payload["structured_output"]["approval_required"] is True
+    assert payload["structured_output"]["mismatch_count"] == 1
+    assert "Without StateGuard" in payload["without_stateguard"]
+    assert "With StateGuard" in payload["with_stateguard"]

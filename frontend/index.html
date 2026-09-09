@@ -99,6 +99,33 @@
           </div>
         </section>
 
+        <section class="panel simulator-panel">
+          <div class="panel-head">
+            <h3>Simulate Custom Mismatch</h3>
+            <span>judge input</span>
+          </div>
+          <form id="simulatorForm" class="simulator-form">
+            <label>
+              Domain
+              <input id="simDomain" value="Invoice collection" />
+            </label>
+            <label>
+              Agent believed
+              <textarea id="simBelief">Agent believes invoice #104 was paid and marks the account as settled.</textarea>
+            </label>
+            <label>
+              Reality showed
+              <textarea id="simReality">Bank API shows no settled payment and the invoice remains unpaid.</textarea>
+            </label>
+            <label>
+              Risky next action
+              <textarea id="simAction">Close the collection task and stop follow-up reminders.</textarea>
+            </label>
+            <button class="primary" type="submit">Simulate Mismatch</button>
+          </form>
+          <div id="simulationResult" class="simulation-result" aria-live="polite"></div>
+        </section>
+
         <section class="grid">
           <article class="panel timeline-panel">
             <div class="panel-head">

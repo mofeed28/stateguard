@@ -5,7 +5,10 @@ from dataclasses import dataclass
 
 from .models import (
     AgentStep,
+    CustomMismatchRequest,
+    CustomMismatchResponse,
     DecisionCard,
+    EventKind,
     ExecutionTraceStep,
     Incident,
     InvestigationResult,
@@ -13,6 +16,7 @@ from .models import (
     ObservabilityEvent,
     Severity,
     StructuredInvestigationOutput,
+    WorkflowEvent,
 )
 from .tools import (
     classify_automation_risk,
@@ -431,6 +435,125 @@ def build_structured_output(result: InvestigationResult) -> StructuredInvestigat
             "blocked_actions": result.decision.blocked_actions,
             "confidence": confidence,
         }
+    )
+
+
+def simulate_custom_mismatch(payload: CustomMismatchRequest) -> CustomMismatchResponse:
+    incident_id = "custom-simulated-mismatch"
+    incident = Incident(
+        id=incident_id,
+        title=f"{payload.domain} belief/reality mismatch",
+        domain=payload.domain,
+        status="needs_approval",
+        severity=Severity.medium,
+        user="Workflow owner",
+        summary=(
+            "A custom autonomous workflow scenario where local agent belief diverges from external reality."
+        ),
+        events=[
+            WorkflowEvent(
+                ts="2026-09-09T00:00:00.000Z",
+                kind=EventKind.local_belief,
+                source="autonomous-agent",
+                summary=payload.agent_belief,
+                data={"submitted": True},
+            ),
+            WorkflowEvent(
+                ts="2026-09-09T00:00:07.000Z",
+                kind=EventKind.external_observation,
+                source="external-system",
+                summary=payload.external_reality,
+                data={"submitted": True},
+            ),
+            WorkflowEvent(
+                ts="2026-09-09T00:00:12.000Z",
+                kind=EventKind.planned_action,
+                source="autonomous-agent",
+                summary=payload.risky_action,
+                data={"requires_reconciliation": True},
+            ),
+        ],
+    )
+    agent_steps = [
+        AgentStep(
+            agent="Supervisor",
+            role="routing",
+            finding="Opened a custom state reconciliation incident from submitted belief and reality signals.",
+            confidence=0.93,
+        ),
+        AgentStep(
+            agent="Timeline Investigator",
+            role="timeline",
+            finding="Ordered the submitted belief, external observation, and planned follow-up action.",
+            confidence=0.9,
+        ),
+        AgentStep(
+            agent="Reality Reconciler",
+            role="reconciliation",
+            finding="Detected that the submitted agent belief conflicts with the external reality statement.",
+            confidence=0.88,
+        ),
+        AgentStep(
+            agent="Risk Sentinel",
+            role="risk",
+            finding="Classified the custom scenario as medium risk until a live adapter provides stronger blast-radius evidence.",
+            confidence=0.84,
+        ),
+        AgentStep(
+            agent="Human Approval Agent",
+            role="approval",
+            finding="Blocked the planned action behind human approval until the mismatch is reconciled.",
+            confidence=0.88,
+        ),
+        AgentStep(
+            agent="Handoff Writer",
+            role="reporting",
+            finding="Generated a sanitized custom handoff from user-provided scenario text.",
+            confidence=0.9,
+        ),
+    ]
+    mismatches = [
+        Mismatch(
+            title="Submitted belief conflicts with external reality",
+            expected=payload.agent_belief,
+            observed=payload.external_reality,
+            evidence_event_indexes=[0, 1, 2],
+            severity=Severity.medium,
+        )
+    ]
+    decision = DecisionCard(
+        title="Approval required: reconcile submitted state mismatch",
+        recommended_action=(
+            "Pause the planned action, refresh external state through the source system, and resume only after "
+            "the workflow owner confirms the agent belief matches reality."
+        ),
+        blocked_actions=[
+            f"Do not proceed with: {payload.risky_action}",
+            "Do not mark the workflow resolved from internal state alone.",
+        ],
+        rationale=(
+            "The submitted scenario shows a direct conflict between autonomous belief and external reality. "
+            "StateGuard blocks continuation because the next action depends on false or unverified state."
+        ),
+    )
+    result = InvestigationResult(
+        incident=incident,
+        agent_steps=agent_steps,
+        execution_trace=build_execution_trace(incident, agent_steps, len(mismatches)),
+        mismatches=mismatches,
+        decision=decision,
+        sanitized_handoff=build_handoff(incident, mismatches, decision),
+        observability_events=build_observability_events(incident, agent_steps, len(mismatches)),
+    )
+    return CustomMismatchResponse(
+        result=result,
+        structured_output=build_structured_output(result),
+        without_stateguard=(
+            f"Without StateGuard, the workflow may continue with: {payload.risky_action}"
+        ),
+        with_stateguard=(
+            "With StateGuard, the risky action is paused behind approval until external state is reconciled."
+        ),
     )
 
 

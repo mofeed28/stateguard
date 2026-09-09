@@ -21,6 +21,12 @@ const observability = document.querySelector("#observability");
 const beliefStatement = document.querySelector("#beliefStatement");
 const realityStatement = document.querySelector("#realityStatement");
 const blockedStatement = document.querySelector("#blockedStatement");
+const simulatorForm = document.querySelector("#simulatorForm");
+const simulationResult = document.querySelector("#simulationResult");
+const simDomain = document.querySelector("#simDomain");
+const simBelief = document.querySelector("#simBelief");
+const simReality = document.querySelector("#simReality");
+const simAction = document.querySelector("#simAction");
 
 const incidentNarrative = {
   "tradeops-ambiguous-cancel-double-entry": {
@@ -185,12 +191,44 @@ async function approve() {
   approvalResult.textContent = JSON.stringify(result, null, 2);
 }
 
+async function simulateMismatch(event) {
+  event.preventDefault();
+  simulationResult.innerHTML = "";
+  const submit = simulatorForm.querySelector("button");
+  submit.disabled = true;
+  const response = await fetch("/api/simulate-mismatch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      domain: simDomain.value,
+      agent_belief: simBelief.value,
+      external_reality: simReality.value,
+      risky_action: simAction.value,
+    }),
+  });
+  const payload = await response.json();
+  const result = payload.result;
+  const before = el("article", "before-after before");
+  before.append(el("span", "", "Without StateGuard"), el("p", "", payload.without_stateguard));
+  const after = el("article", "before-after after");
+  after.append(el("span", "", "With StateGuard"), el("p", "", payload.with_stateguard));
+  const decision = el("article", "sim-decision");
+  decision.append(
+    el("strong", "", result.decision.title),
+    el("p", "", result.decision.rationale),
+    el("code", "", `structured_output: ${JSON.stringify(payload.structured_output)}`)
+  );
+  simulationResult.append(before, after, decision);
+  submit.disabled = false;
+}
+
 function pause(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 replayBtn.addEventListener("click", () => loadReplay({ animate: true }));
 approveBtn.addEventListener("click", approve);
+simulatorForm.addEventListener("submit", simulateMismatch);
 incidentSelect.addEventListener("change", () => {
   incidentId = incidentSelect.value;
   loadReplay();

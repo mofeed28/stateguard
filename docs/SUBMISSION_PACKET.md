@@ -32,6 +32,8 @@ StateGuard catches that mismatch before the next autonomous action. It shows the
 
 The project also includes client-communications and operations-scheduling incidents. One agent believes an email was sent, but the provider rejected delivery. Another believes a clinic shift is fully staffed, but calendar reality shows only one accepted volunteer and two pending invites. That shows the same safety pattern works beyond finance.
 
+Judges can also use the custom mismatch simulator to enter their own domain, agent belief, external reality, and risky next action. StateGuard returns a structured approval decision and a before/after comparison showing what happens without the safety layer versus with it.
+
 ## Why It Matters
 
 Most agent safety work focuses on prompts, content filters, and tool permissions. Those are important, but real operations fail in another way: the agent's internal state becomes false. A provider times out, an external system changes, an event arrives late, and the agent confidently continues from a stale belief.

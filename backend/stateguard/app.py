@@ -6,8 +6,9 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from mangum import Mangum
 
-from .agents import ROLES, build_structured_output, investigate
+from .agents import ROLES, build_structured_output, investigate, simulate_custom_mismatch
 from .fixtures import adapter_examples, all_incidents, get_incident
+from .models import CustomMismatchRequest, CustomMismatchResponse
 from .tools import (
     classify_automation_risk,
     detect_state_mismatches,
@@ -99,6 +100,11 @@ def approve(incident_id: str) -> dict[str, str]:
         "status": "approved_for_safe_maintenance",
         "next_step": "pause_new_actions_then_reconcile_external_state",
     }
+
+
+@app.post("/api/simulate-mismatch")
+def simulate_mismatch(payload: CustomMismatchRequest) -> CustomMismatchResponse:
+    return simulate_custom_mismatch(payload)
 
 
 @app.get("/api/adapters")

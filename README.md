@@ -60,6 +60,7 @@ The app now shows the full investigation run:
 - Human approval card
 - Observability event stream
 - Sanitized handoff report
+- Custom mismatch simulator with before/after outcome
 
 The 90-second video outline lives in `docs/DEMO_SCRIPT.md`, and the paste-ready Devpost packet lives in `docs/SUBMISSION_PACKET.md`.
 
@@ -90,6 +91,7 @@ Demo API surfaces:
 - `/api/incidents/{incident_id}/replay` returns the full investigation result.
 - `/api/incidents/{incident_id}/structured-output` returns a Pydantic-validated decision object suitable for Strands structured output.
 - `/api/incidents/{incident_id}/observability` returns production-style events for CloudWatch/OpenTelemetry mapping.
+- `/api/simulate-mismatch` accepts custom belief/reality/action text and returns a structured approval decision.
 
 The current demo is deterministic and fixture-backed so judges can run it without exchange keys or private credentials. Live adapters can be added for trading platforms, email providers, calendars, payment systems, and volunteer scheduling tools.
 
