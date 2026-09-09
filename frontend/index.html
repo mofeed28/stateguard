@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>StateGuard</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="mark">SG</div>
+          <div>
+            <h1>StateGuard</h1>
+            <p>Belief vs reality reconciliation</p>
+          </div>
+        </div>
+        <nav>
+          <button class="nav active">Incident Replay</button>
+          <button class="nav">Agent Run</button>
+          <button class="nav">Observability</button>
+          <button class="nav">Adapters</button>
+          <button class="nav">Architecture</button>
+        </nav>
+        <section class="status">
+          <span class="dot"></span>
+          Strands agent roles loaded
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">High-risk automation</p>
+            <h2>Catch state drift before autonomous actions cause damage</h2>
+          </div>
+          <div class="actions">
+            <select id="incidentSelect" aria-label="Incident"></select>
+            <button id="replayBtn" class="primary">Replay Incident</button>
+          </div>
+        </header>
+
+        <section class="metrics">
+          <article>
+            <span>Severity</span>
+            <strong id="severity">High</strong>
+          </article>
+          <article>
+            <span>Mismatches</span>
+            <strong id="mismatchCount">2</strong>
+          </article>
+          <article>
+            <span>Human Gates</span>
+            <strong>Required</strong>
+          </article>
+          <article>
+            <span>Demo Mode</span>
+            <strong>Sanitized</strong>
+          </article>
+        </section>
+
+        <section class="grid">
+          <article class="panel timeline-panel">
+            <div class="panel-head">
+              <h3>Incident Timeline</h3>
+              <span id="incidentStatus">needs approval</span>
+            </div>
+            <ol id="timeline" class="timeline"></ol>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <h3>Agent Findings</h3>
+              <span>role outputs</span>
+            </div>
+            <div id="agents" class="agent-list"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <h3>State Mismatches</h3>
+            </div>
+            <div id="mismatches" class="mismatch-list"></div>
+          </article>
+
+          <article class="panel decision">
+            <div class="panel-head">
+              <h3>Decision Card</h3>
+              <span>approval gate</span>
+            </div>
+            <h4 id="decisionTitle">Approval required</h4>
+            <p id="decisionText"></p>
+            <button id="approveBtn" class="secondary">Approve Safe Maintenance</button>
+            <pre id="approvalResult"></pre>
+          </article>
+
+          <article class="panel report">
+            <div class="panel-head">
+              <h3>Sanitized Handoff</h3>
+              <span>report</span>
+            </div>
+            <pre id="handoff"></pre>
+          </article>
+        </section>
+
+        <section class="run-grid">
+          <article class="panel trace-panel">
+            <div class="panel-head">
+              <h3>Strands Workflow Trace</h3>
+              <span>agent orchestration</span>
+            </div>
+            <div id="trace" class="trace-list"></div>
+          </article>
+
+          <article class="panel structured-panel">
+            <div class="panel-head">
+              <h3>Structured Output</h3>
+              <span>Pydantic validated</span>
+            </div>
+            <pre id="structuredOutput"></pre>
+          </article>
+        </section>
+
+        <section class="panel observability-panel">
+          <div class="panel-head">
+            <h3>Observability Events</h3>
+            <span>production signal</span>
+          </div>
+          <div id="observability" class="event-list"></div>
+        </section>
+
+        <section class="tabs">
+          <article class="panel tools-panel">
+            <div class="panel-head">
+              <h3>Strands Tools</h3>
+              <span>@tool</span>
+            </div>
+            <div id="tools" class="tool-list"></div>
+          </article>
+          <article class="panel architecture-panel">
+            <div class="panel-head">
+              <h3>Production Shape</h3>
+              <span>AWS</span>
+            </div>
+            <div class="architecture">
+              <span>EventBridge</span>
+              <span>SQS</span>
+              <span>Strands Agents</span>
+              <span>DynamoDB</span>
+              <span>Approval UI</span>
+              <span>AgentCore Runtime</span>
+            </div>
+          </article>
+        </section>
+
+        <section class="adapter-strip" id="adapters"></section>
+      </section>
+    </main>
+    <script src="/assets/app.js"></script>
+  </body>
+</html>

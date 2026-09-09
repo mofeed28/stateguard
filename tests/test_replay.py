@@ -1,0 +1,96 @@
+from fastapi.testclient import TestClient
+
+from stateguard.app import app
+
+
+client = TestClient(app)
+
+
+def test_replay_detects_high_risk_mismatches():
+    response = client.get("/api/incidents/tradeops-ambiguous-cancel-double-entry/replay")
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["incident"]["severity"] == "high"
+    assert len(payload["mismatches"]) == 2
+    assert [step["agent"] for step in payload["execution_trace"]] == [
+        "Supervisor",
+        "Timeline Investigator",
+        "Reality Reconciler",
+        "Risk Sentinel",
+        "Human Approval Agent",
+        "Handoff Writer",
+    ]
+    assert payload["decision"]["requires_approval"] is True
+    assert "Pause new entry placement" in payload["decision"]["recommended_action"]
+
+
+def test_handoff_is_sanitized():
+    response = client.get("/api/incidents/tradeops-ambiguous-cancel-double-entry/replay")
+    handoff = response.json()["sanitized_handoff"].lower()
+
+    assert "secret" in handoff
+    assert "api_key" not in handoff
+    assert "password" not in handoff
+    assert "/home/" not in handoff
+
+
+def test_adapter_examples_show_extensibility():
+    response = client.get("/api/adapters")
+    assert response.status_code == 200
+    examples = response.json()
+
+    assert {example["name"] for example in examples} == {
+        "Inbox Agent",
+        "Volunteer Scheduler",
+    }
+
+
+def test_inbox_replay_proves_non_finance_adapter():
+    response = client.get("/api/incidents/inbox-undelivered-followup/replay")
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["incident"]["domain"] == "Client communications"
+    assert payload["incident"]["severity"] == "medium"
+    assert payload["mismatches"][0]["title"].startswith("Workflow belief")
+
+
+def test_strands_tools_endpoint_lists_decorated_tools():
+    response = client.get("/api/strands-tools")
+    assert response.status_code == 200
+    names = {tool["name"] for tool in response.json()}
+
+    assert "load_incident_events" in names
+    assert "detect_state_mismatches" in names
+    assert "classify_automation_risk" in names
+    assert "generate_sanitized_handoff" in names
+
+
+def test_structured_output_is_validated_for_demo():
+    response = client.get(
+        "/api/incidents/tradeops-ambiguous-cancel-double-entry/structured-output"
+    )
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["incident_id"] == "tradeops-ambiguous-cancel-double-entry"
+    assert payload["severity"] == "high"
+    assert payload["mismatch_count"] == 2
+    assert payload["approval_required"] is True
+    assert payload["confidence"] >= 0.9
+
+
+def test_observability_events_show_production_trace():
+    response = client.get(
+        "/api/incidents/inbox-undelivered-followup/observability"
+    )
+    assert response.status_code == 200
+    events = response.json()
+
+    assert {event["event"] for event in events} >= {
+        "incident.events.loaded",
+        "belief_reality.mismatch_detected",
+        "autonomous_action.blocked",
+        "operator_handoff.ready",
+    }
