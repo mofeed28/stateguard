@@ -1,0 +1,189 @@
+<!doctype html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>StateGuard Architecture Diagram</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f8fafc;
+    --fg: #172033;
+    --muted: #5b6475;
+    --line: #64748b;
+    --neutral: #e2e8f0;
+    --input: #bfdbfe;
+    --process: #c7d2fe;
+    --storage: #99f6e4;
+    --external: #fde68a;
+    --risk: #fecaca;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a;
+      --fg: #e5e7eb;
+      --muted: #a3adbd;
+      --line: #94a3b8;
+      --neutral: #334155;
+      --input: #1d4ed8;
+      --process: #4338ca;
+      --storage: #0f766e;
+      --external: #92400e;
+      --risk: #991b1b;
+    }
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font:
+      14px/1.4 ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+  main {
+    max-width: 1120px;
+    margin: 32px auto;
+    padding: 0 20px;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .title {
+    font-size: 24px;
+    font-weight: 700;
+    fill: var(--fg);
+  }
+  .zone-title,
+  .label {
+    font-size: 14px;
+    font-weight: 650;
+    fill: var(--fg);
+  }
+  .small {
+    font-size: 12px;
+    fill: var(--muted);
+  }
+  .node {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+  .neutral {
+    fill: var(--neutral);
+  }
+  .input {
+    fill: var(--input);
+  }
+  .process {
+    fill: var(--process);
+  }
+  .storage {
+    fill: var(--storage);
+  }
+  .external {
+    fill: var(--external);
+  }
+  .risk {
+    fill: var(--risk);
+  }
+  .edge {
+    stroke: var(--line);
+    stroke-width: 1.6;
+    fill: none;
+  }
+  .zone {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1;
+    stroke-dasharray: 7 6;
+    opacity: 0.85;
+  }
+</style>
+<main>
+  <svg viewBox="0 0 1120 720" role="img" aria-labelledby="title desc" xmlns="http://www.w3.org/2000/svg">
+    <title id="title">StateGuard AWS Architecture</title>
+    <desc id="desc">Autonomous workflow events and external state flow through AWS ingestion, Strands agents, incident storage, approval, handoff, and observability.</desc>
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--line)" />
+      </marker>
+    </defs>
+
+    <text class="title" x="36" y="48">StateGuard Architecture</text>
+    <text class="small" x="36" y="72">Reality-check layer for autonomous agents before the next risky action runs</text>
+
+    <rect class="zone" x="28" y="105" width="245" height="490" rx="10" />
+    <text class="zone-title" x="48" y="132">Inputs</text>
+
+    <rect class="zone" x="315" y="105" width="500" height="490" rx="10" />
+    <text class="zone-title" x="335" y="132">StateGuard on AWS</text>
+
+    <rect class="zone" x="850" y="105" width="235" height="490" rx="10" />
+    <text class="zone-title" x="870" y="132">Human and Ops Outputs</text>
+
+    <path class="edge" d="M 240 190 H 365 V 300 H 420" marker-end="url(#arrow)" />
+    <path class="edge" d="M 240 300 H 420" marker-end="url(#arrow)" />
+    <path class="edge" d="M 240 410 H 365 V 345 H 420" marker-end="url(#arrow)" />
+    <path class="edge" d="M 580 300 H 615 V 205 H 655" marker-end="url(#arrow)" />
+    <path class="edge" d="M 735 225 V 294" marker-end="url(#arrow)" />
+    <path class="edge" d="M 580 330 H 655" marker-end="url(#arrow)" />
+    <path class="edge" d="M 735 300 L 900 205" marker-end="url(#arrow)" />
+    <path class="edge" d="M 735 300 L 900 315" marker-end="url(#arrow)" />
+    <path class="edge" d="M 655 370 L 655 445" marker-end="url(#arrow)" />
+    <path class="edge" d="M 735 445 L 900 445" marker-end="url(#arrow)" />
+
+    <rect class="node input" x="58" y="155" width="182" height="70" rx="8" />
+    <text class="label" x="78" y="185">Agent belief</text>
+    <text class="small" x="78" y="205">plans, local state, notes</text>
+
+    <rect class="node external" x="58" y="265" width="182" height="70" rx="8" />
+    <text class="label" x="78" y="295">External reality</text>
+    <text class="small" x="78" y="315">providers, fills, status</text>
+
+    <rect class="node neutral" x="58" y="375" width="182" height="70" rx="8" />
+    <text class="label" x="78" y="405">Policy rules</text>
+    <text class="small" x="78" y="425">approval and risk gates</text>
+
+    <rect class="node process" x="340" y="255" width="160" height="90" rx="8" />
+    <text class="label" x="360" y="288">EventBridge</text>
+    <text class="small" x="360" y="308">or API ingestion</text>
+    <text class="small" x="360" y="328">normalizes events</text>
+
+    <rect class="node process" x="575" y="150" width="160" height="75" rx="8" />
+    <text class="label" x="595" y="180">Supervisor</text>
+    <text class="small" x="595" y="200">routes investigation</text>
+
+    <rect class="node process" x="575" y="262" width="160" height="75" rx="8" />
+    <text class="label" x="595" y="292">Strands agents</text>
+    <text class="small" x="595" y="312">timeline, reconcile, risk</text>
+
+    <rect class="node storage" x="575" y="445" width="160" height="75" rx="8" />
+    <text class="label" x="595" y="475">DynamoDB</text>
+    <text class="small" x="595" y="495">incident state</text>
+
+    <rect class="node risk" x="900" y="170" width="150" height="70" rx="8" />
+    <text class="label" x="920" y="200">Approval card</text>
+    <text class="small" x="920" y="220">blocks unsafe action</text>
+
+    <rect class="node neutral" x="900" y="280" width="150" height="70" rx="8" />
+    <text class="label" x="920" y="310">Structured output</text>
+    <text class="small" x="920" y="330">Pydantic decision</text>
+
+    <rect class="node neutral" x="900" y="410" width="150" height="70" rx="8" />
+    <text class="label" x="920" y="440">Handoff report</text>
+    <text class="small" x="920" y="460">sanitized for operators</text>
+
+    <rect class="node storage" x="900" y="515" width="150" height="56" rx="8" />
+    <text class="label" x="920" y="548">CloudWatch</text>
+
+    <path class="edge" d="M 735 520 L 900 543" marker-end="url(#arrow)" />
+
+    <rect class="node external" x="575" y="615" width="160" height="50" rx="8" />
+    <text class="label" x="595" y="646">Live Lambda demo</text>
+
+    <path class="edge" d="M 655 520 L 655 615" marker-end="url(#arrow)" />
+  </svg>
+</main>

@@ -65,6 +65,8 @@ The 90-second video outline lives in `docs/DEMO_SCRIPT.md`, and the paste-ready 
 
 ## Architecture
 
+Open the standalone architecture diagram at [`docs/architecture-diagram.html`](docs/architecture-diagram.html).
+
 StateGuard is built around Strands-style agent roles:
 
 - **Supervisor Agent** routes the investigation.

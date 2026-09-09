@@ -20,6 +20,8 @@ https://gzmrlkrayb3oz3qe22g2v5tv7e0qoqfa.lambda-url.us-east-1.on.aws/
 
 https://github.com/mofeed28/stateguard
 
+Architecture diagram: `docs/architecture-diagram.html`
+
 ## What It Does
 
 StateGuard monitors autonomous workflows for belief-vs-reality drift. The demo shows an execution agent that believes a trading position is zero and plans a fresh entry. External exchange events tell a different story: an earlier cancel was ambiguous, the prior order filled, and the workflow is now at risk of doubling exposure.

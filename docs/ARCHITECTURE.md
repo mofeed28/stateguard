@@ -1,5 +1,7 @@
 # Architecture
 
+Standalone diagram: [`docs/architecture-diagram.html`](architecture-diagram.html)
+
 ```mermaid
 flowchart LR
     A[Autonomous workflow logs] --> B[Event Ingestion]
