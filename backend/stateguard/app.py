@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import hmac
 import os
+from urllib.parse import urlparse
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from mangum import Mangum
 
@@ -34,6 +35,43 @@ app.add_middleware(
 )
 
 FRONTEND_DIR = "frontend"
+
+
+def _live_mode_requires_key() -> bool:
+    return os.getenv("STATEGUARD_USE_STRANDS_LLM") == "1"
+
+
+def _live_key_is_valid(candidate: str | None) -> bool:
+    live_key = os.getenv("STATEGUARD_LIVE_DEMO_KEY")
+    return bool(live_key and candidate and hmac.compare_digest(candidate, live_key))
+
+
+def _live_origin_is_allowed(request: Request) -> bool:
+    origin = request.headers.get("origin")
+    if not origin:
+        return True
+
+    parsed = urlparse(origin)
+    expected_host = request.headers.get("host")
+    return parsed.scheme == request.url.scheme and parsed.netloc == expected_host
+
+
+@app.middleware("http")
+async def protect_live_llm_endpoint(request: Request, call_next):
+    if (
+        _live_mode_requires_key()
+        and request.url.path == "/api/simulate-mismatch/live"
+        and request.method == "POST"
+    ):
+        if not _live_origin_is_allowed(request):
+            return JSONResponse(
+                status_code=403, content={"detail": "live_origin_not_allowed"}
+            )
+        if not _live_key_is_valid(request.headers.get("x-stateguard-live-key")):
+            return JSONResponse(
+                status_code=403, content={"detail": "live_demo_key_required"}
+            )
+    return await call_next(request)
 
 
 @app.get("/api/health")
@@ -121,13 +159,11 @@ def simulate_mismatch_live(
     payload: CustomMismatchRequest,
     x_stateguard_live_key: str | None = Header(default=None),
 ) -> CustomMismatchResponse:
-    if os.getenv("STATEGUARD_USE_STRANDS_LLM") == "1":
+    if _live_mode_requires_key():
         live_key = os.getenv("STATEGUARD_LIVE_DEMO_KEY")
         if not live_key:
             raise HTTPException(status_code=403, detail="live_demo_key_not_configured")
-        if not x_stateguard_live_key or not hmac.compare_digest(
-            x_stateguard_live_key, live_key
-        ):
+        if not x_stateguard_live_key or not _live_key_is_valid(x_stateguard_live_key):
             raise HTTPException(status_code=403, detail="live_demo_key_required")
     return simulate_live_mismatch(payload)
 
