@@ -29,6 +29,12 @@ uvicorn stateguard.app:app --app-dir backend --reload --port 8787
 
 Open `http://127.0.0.1:8787`.
 
+Run smoke checks against a live local or hosted app:
+
+```bash
+STATEGUARD_BASE_URL=http://127.0.0.1:8787 scripts/smoke.sh
+```
+
 The flagship demo incident replays a high-risk automation mismatch:
 
 1. Bot plans an entry while its local position belief is zero.
@@ -91,6 +97,10 @@ Official resources used for alignment:
 - Strands custom tools: Python `@tool` functions expose typed, documented capabilities to agents.
 - Strands structured output: Pydantic models provide validated agent results.
 - AgentCore Runtime: deployment target for containerized or direct-code agent runtimes.
+
+## Deployment
+
+The repo includes a production Dockerfile and App Runner notes in `docs/DEPLOYMENT.md`. The intended hackathon path is AWS App Runner for the public HTTPS demo URL, with AgentCore/Bedrock/EventBridge/DynamoDB described as the production architecture path.
 
 ## License
 
