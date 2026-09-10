@@ -629,7 +629,7 @@ def simulate_live_mismatch(payload: CustomMismatchRequest) -> CustomMismatchResp
             update={"live_error": "Strands Agent import is unavailable; deterministic simulator returned."}
         )
 
-    model_id = os.getenv("STATEGUARD_BEDROCK_MODEL_ID", "amazon.nova-micro-v1:0")
+    model_id = os.getenv("STATEGUARD_BEDROCK_MODEL_ID", "us.amazon.nova-micro-v1:0")
     timeout_seconds = int(os.getenv("STATEGUARD_LIVE_TIMEOUT_SECONDS", "18"))
     try:
         import multiprocessing
