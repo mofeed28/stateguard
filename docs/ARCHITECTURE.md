@@ -43,3 +43,12 @@ checks receipt metadata, invokes two Strands tools (`inspect_send_attempt` and
 The Gmail dashboard and agent cannot send messages. It uses the existing self-test
 from the separate CLI. Subject/account/time correlation is weaker than an immutable
 provider identifier; the displayed proof is restricted to this controlled test.
+
+## Diagram files
+
+- `architecture-diagram.png`: corrected diagram for the current implementation and Devpost upload.
+- `architecture-diagram.svg`: editable vector version of the corrected diagram.
+- `architecture-diagram.html`: browser version served at `/architecture`.
+- `architecture-diagram-first.png` (also SVG/HTML): preserved first redesign, kept for comparison. Its sandbox connector points toward Gmail-specific tools; use the corrected main version when describing the implementation.
+
+Regenerate the main files with `python scripts/render_architecture.py` (Pillow and Windows Segoe UI fonts required).
