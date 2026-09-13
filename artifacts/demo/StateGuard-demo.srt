@@ -1,0 +1,91 @@
+1
+00:00:00,000 --> 00:00:07,352
+A timeout does not mean an email failed. An autonomous worker can retry after the provider already delivered,
+
+2
+00:00:07,352 --> 00:00:13,962
+sending your client the same message twice. StateGuard checks the evidence before the next action.
+
+3
+00:00:13,962 --> 00:00:21,976
+Here is the working application. This is an isolated, stateful email sandbox: no real email is sent. The worker
+
+4
+00:00:21,976 --> 00:00:30,134
+believes the message was not sent, but the provider ledger already records one delivery. This disagreement is the
+
+5
+00:00:30,134 --> 00:00:32,083
+problem we need to resolve.
+
+6
+00:00:32,083 --> 00:00:40,000
+We run the worker. StateGuard checks the provider and blocks the retry before another delivery occurs. The workflow
+
+7
+00:00:40,000 --> 00:00:47,849
+now needs approval, and the delivery count stays at one. The action gate runs in a SQLite transaction, so repeated
+
+8
+00:00:47,849 --> 00:00:51,429
+worker calls cannot create another sandbox delivery.
+
+9
+00:00:51,429 --> 00:00:59,034
+Now a real Strands agent investigates using OpenAI. It calls the worker history tool and the delivery provider tool
+
+10
+00:00:59,034 --> 00:01:06,640
+to collect fresh evidence. Its structured report explains the disagreement and recommends reconciliation. The agent
+
+11
+00:01:06,640 --> 00:01:11,599
+can advise, but it cannot send a message or approve its own recommendation.
+
+12
+00:01:11,599 --> 00:01:19,040
+We approve reconciliation through the application. This updates the worker's belief to match confirmed delivery.
+
+13
+00:01:19,040 --> 00:01:26,548
+The workflow completes with exactly one delivery. The audit trail records the approval and verification. Approval
+
+14
+00:01:26,548 --> 00:01:32,660
+is tied to the state version, so changed evidence cannot be overwritten by a stale decision.
+
+15
+00:01:32,660 --> 00:01:40,122
+Safety should not require a human for every action. In the healthy scenario, both sources agree the message has not
+
+16
+00:01:40,122 --> 00:01:47,325
+been sent. The worker sends once in the sandbox and completes without human approval. When provider evidence is
+
+17
+00:01:47,325 --> 00:01:52,905
+pending or unavailable, the worker instead holds the retry until the evidence changes.
+
+18
+00:01:52,905 --> 00:02:00,689
+The current implementation combines Strands tool use, structured analysis, a transactional action gate, versioned
+
+19
+00:02:00,689 --> 00:02:08,404
+approvals, and persisted audit events. Twenty eight regression tests pass, including concurrent worker calls and
+
+20
+00:02:08,404 --> 00:02:14,810
+stale approvals. These are controlled sandbox results, not a claim of production reliability.
+
+21
+00:02:14,810 --> 00:02:22,564
+A real email provider adapter and shared cloud persistence are the next steps. Bedrock remains supported, while
+
+22
+00:02:22,564 --> 00:02:30,597
+this recorded investigation uses OpenAI through Strands. StateGuard demonstrates one concrete outcome: identify the
+
+23
+00:02:30,597 --> 00:02:36,326
+mismatch, prevent the duplicate, and verify recovery before the workflow moves on.

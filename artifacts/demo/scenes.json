@@ -1,0 +1,50 @@
+[
+  {
+    "image": "01-intro.png",
+    "title": "StateGuard",
+    "subtitle": "A timeout is not proof of failure.",
+    "narration": "A timeout does not mean an email failed. An autonomous worker can retry after the provider already delivered, sending your client the same message twice. StateGuard checks the evidence before the next action."
+  },
+  {
+    "image": "02-mismatch.png",
+    "title": "01 / Detect the mismatch",
+    "subtitle": "Worker: not sent. Provider: delivered.",
+    "narration": "Here is the working application. This is an isolated, stateful email sandbox: no real email is sent. The worker believes the message was not sent, but the provider ledger already records one delivery. This disagreement is the problem we need to resolve."
+  },
+  {
+    "image": "03-blocked.png",
+    "title": "02 / Stop the duplicate",
+    "subtitle": "One delivery. Retry blocked.",
+    "narration": "We run the worker. StateGuard checks the provider and blocks the retry before another delivery occurs. The workflow now needs approval, and the delivery count stays at one. The action gate runs in a SQLite transaction, so repeated worker calls cannot create another sandbox delivery."
+  },
+  {
+    "image": "04-analysis.png",
+    "title": "03 / Investigate with Strands",
+    "subtitle": "Real model. Fresh tool evidence.",
+    "narration": "Now a real Strands agent investigates using OpenAI. It calls the worker history tool and the delivery provider tool to collect fresh evidence. Its structured report explains the disagreement and recommends reconciliation. The agent can advise, but it cannot send a message or approve its own recommendation."
+  },
+  {
+    "image": "05-completed.png",
+    "title": "04 / Approve and verify",
+    "subtitle": "Reconcile the belief. Do not resend.",
+    "narration": "We approve reconciliation through the application. This updates the worker's belief to match confirmed delivery. The workflow completes with exactly one delivery. The audit trail records the approval and verification. Approval is tied to the state version, so changed evidence cannot be overwritten by a stale decision."
+  },
+  {
+    "image": "06-healthy.png",
+    "title": "05 / Avoid needless interruptions",
+    "subtitle": "Healthy work completes automatically.",
+    "narration": "Safety should not require a human for every action. In the healthy scenario, both sources agree the message has not been sent. The worker sends once in the sandbox and completes without human approval. When provider evidence is pending or unavailable, the worker instead holds the retry until the evidence changes."
+  },
+  {
+    "image": null,
+    "title": "Built and verified",
+    "subtitle": "28 regression tests pass.",
+    "narration": "The current implementation combines Strands tool use, structured analysis, a transactional action gate, versioned approvals, and persisted audit events. Twenty eight regression tests pass, including concurrent worker calls and stale approvals. These are controlled sandbox results, not a claim of production reliability."
+  },
+  {
+    "image": null,
+    "title": "Check reality. Verify recovery.",
+    "subtitle": "Next: a real provider adapter.",
+    "narration": "A real email provider adapter and shared cloud persistence are the next steps. Bedrock remains supported, while this recorded investigation uses OpenAI through Strands. StateGuard demonstrates one concrete outcome: identify the mismatch, prevent the duplicate, and verify recovery before the workflow moves on."
+  }
+]

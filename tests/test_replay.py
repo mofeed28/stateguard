@@ -36,7 +36,7 @@ def test_handoff_is_sanitized():
     response = client.get("/api/incidents/tradeops-ambiguous-cancel-double-entry/replay")
     handoff = response.json()["sanitized_handoff"].lower()
 
-    assert "secret" in handoff
+    assert "best-effort" in handoff
     assert "api_key" not in handoff
     assert "password" not in handoff
     assert "/home/" not in handoff
@@ -131,7 +131,7 @@ def test_custom_mismatch_simulator_returns_structured_decision():
     assert payload["structured_output"]["approval_required"] is True
     assert payload["structured_output"]["mismatch_count"] == 1
     assert "Without StateGuard" in payload["without_stateguard"]
-    assert "With StateGuard" in payload["with_stateguard"]
+    assert "no external workflow was changed" in payload["with_stateguard"]
 
 
 def test_live_mismatch_endpoint_falls_back_when_disabled():

@@ -17,7 +17,8 @@
           </div>
         </div>
         <nav id="sidebarNav">
-          <button class="nav active" data-target="#replaySection">Incident Replay</button>
+          <button class="nav active" data-target="#workflowSection">Live Workflow</button>
+          <button class="nav" data-target="#replaySection">Archived Replays</button>
           <button class="nav" data-target="#agentRunSection">Agent Run</button>
           <button class="nav" data-target="#observabilitySection">Observability</button>
           <button class="nav" data-target="#adapters">Adapters</button>
@@ -25,14 +26,49 @@
         </nav>
         <section class="status">
           <span class="dot"></span>
-          Strands agent roles loaded
+          Sandbox + optional live Strands
         </section>
       </aside>
 
       <section class="workspace">
+        <section class="panel" id="workflowSection">
+          <p class="eyebrow">Client communications · executable sandbox</p>
+          <h2>A timeout should not send your client the same email twice.</h2>
+          <p>Start a worker, change the provider evidence, and watch StateGuard enforce the next action. No real email is sent.</p>
+          <div class="actions workflow-controls">
+            <select id="workflowScenario" aria-label="Workflow scenario">
+              <option value="accepted_timeout">Provider delivered, worker saw timeout</option>
+              <option value="healthy">Healthy: message has not been sent</option>
+              <option value="delayed">Delivery confirmation is pending</option>
+              <option value="unavailable">Provider is unavailable</option>
+            </select>
+            <button id="startWorkflow" class="primary">Start new workflow</button>
+          </div>
+          <div id="workflowState" aria-live="polite">Choose a scenario to begin.</div>
+          <div class="actions workflow-controls">
+            <button id="tickWorkflow" class="primary" disabled>Run worker / refresh evidence</button>
+            <label for="workflowAccessKey">Local demo access key</label>
+            <input id="workflowAccessKey" type="password" autocomplete="off" placeholder="From .stateguard-live-key (not your API key)">
+            <button id="investigateWorkflow" class="secondary" disabled>Investigate with live Strands</button>
+            <button id="approveWorkflow" class="secondary" disabled>Approve reconciliation — do not resend</button>
+          </div>
+          <details>
+            <summary>Change sandbox provider evidence</summary>
+            <div class="actions workflow-controls">
+              <select id="providerState" aria-label="Provider state">
+                <option value="delivered">Delivered</option><option value="pending">Pending</option>
+                <option value="unavailable">Unavailable</option><option value="not_sent">Not sent</option>
+              </select>
+              <button id="changeProvider" class="secondary" disabled>Apply provider event</button>
+            </div>
+          </details>
+          <p id="workflowError" role="alert"></p>
+          <div class="grid"><article><h3>What actually happened</h3><ol id="workflowEvents" class="timeline"></ol></article>
+          <article><h3>Live agent investigation</h3><div id="workflowAnalysis">No model has run. The deterministic gate works without model access.</div></article></div>
+        </section>
         <header class="topbar" id="replaySection">
           <div>
-            <p class="eyebrow">High-risk automation</p>
+            <p class="eyebrow">Archived fixture illustrations · read-only</p>
             <h2>Agents can act on stale beliefs. StateGuard checks reality first.</h2>
           </div>
           <div class="actions">
@@ -71,7 +107,7 @@
           </article>
           <article>
             <span>Demo Mode</span>
-            <strong>Sanitized</strong>
+            <strong>Fixture replay</strong>
           </article>
         </section>
 
@@ -101,8 +137,8 @@
 
         <section class="panel simulator-panel">
           <div class="panel-head">
-            <h3>Simulate Custom Mismatch</h3>
-            <span>judge input</span>
+            <h3>Preview a text scenario</h3>
+            <span>offline preview assumes uncertainty; no provider connected</span>
           </div>
           <form id="simulatorForm" class="simulator-form">
             <label>
@@ -160,7 +196,7 @@
             </div>
             <h4 id="decisionTitle">Approval required</h4>
             <p id="decisionText"></p>
-            <button id="approveBtn" class="secondary">Approve Safe Maintenance</button>
+            <button id="approveBtn" class="secondary" disabled>Read-only replay — use sandbox above</button>
             <pre id="approvalResult"></pre>
           </article>
 
@@ -176,8 +212,8 @@
         <section class="run-grid" id="agentRunSection">
           <article class="panel trace-panel">
             <div class="panel-head">
-              <h3>Strands Workflow Trace</h3>
-              <span>agent orchestration</span>
+              <h3>Illustrated Investigation Steps</h3>
+              <span>scripted fixture; not measured agent execution</span>
             </div>
             <div id="trace" class="trace-list"></div>
           </article>
@@ -227,5 +263,6 @@
       </section>
     </main>
     <script src="/assets/app.js"></script>
+    <script src="/assets/workflow.js"></script>
   </body>
 </html>

@@ -1,81 +1,31 @@
 # Deployment
 
-StateGuard is deployed on AWS Lambda Function URL for the hackathon demo URL. App Runner was the first target, but AWS returned an internal system error during provisioning on this account after the service built successfully. Lambda Function URL gives the same AWS-hosted public HTTPS demo path without waiting on App Runner support.
+## Current working-tree upgrade
 
-## Canonical Repo
-
-- Repo: `https://github.com/mofeed28/stateguard`
-- Visibility: private during prep; Devpost requires this repo to be public before final submission
-- Branch: `main`
-- Health check: `/api/health`
-- Runtime port: `8787` locally, or `$PORT` in hosted environments
-- Live URL: `https://gzmrlkrayb3oz3qe22g2v5tv7e0qoqfa.lambda-url.us-east-1.on.aws/`
-
-## Lambda Function URL Path
-
-The active AWS deployment uses:
-
-- Runtime: Python 3.11
-- Handler: `stateguard.app.handler`
-- Adapter: Mangum
-- Function: `stateguard`
-- Function URL auth: public / none
-- Optional live Strands mode: disabled by default; enable only after Bedrock model access and Lambda IAM permissions are confirmed. Configure a live demo key before enabling it on a public URL.
-
-The deployment bundle must be built with Python 3.11-compatible Linux wheels. From a non-Lambda Python version, use a platform-targeted install, then copy the app package and frontend assets into the zip root.
-
-Optional live analysis environment variables:
+The stateful email workflow has not yet been deployed. Run FastAPI and the optional background worker on one host with the same persistent STATEGUARD_DB_PATH. SQLite is appropriate for this single-host sandbox; it is not shared storage across Lambda instances.
 
 ```bash
-STATEGUARD_USE_STRANDS_LLM=1
-STATEGUARD_BEDROCK_MODEL_ID=amazon.nova-micro-v1:0
-STATEGUARD_LIVE_DEMO_KEY=replace-with-a-random-demo-key
-STATEGUARD_LIVE_TIMEOUT_SECONDS=18
-AWS_REGION=us-east-1
-```
-
-The Lambda execution role also needs permission for `bedrock:InvokeModel` and `bedrock:InvokeModelWithResponseStream` on the chosen model.
-
-## App Runner Path
-
-Alternative container path:
-
-1. Create an App Runner service.
-2. Source from `mofeed28/stateguard`.
-3. Use branch `main`.
-4. Build from the repository Dockerfile, or build and push the image to ECR if the console path requires an image source.
-5. Set service port to `8787` for Docker or `8080` for App Runner managed Python.
-6. Set health check path to `/api/health`.
-7. Keep environment variables empty for the demo.
-
-The app is deterministic and does not require exchange, email, Bedrock, or model credentials.
-
-## Local Commands
-
-Python smoke test:
-
-```bash
-python3 -m venv .venv
-. .venv/bin/activate
 python -m pip install -e ".[dev]"
-python -m pytest -q
-uvicorn stateguard.app:app --app-dir backend --host 127.0.0.1 --port 8787
+python -m uvicorn stateguard.app:app --app-dir backend --host 127.0.0.1 --port 8787
+python -m stateguard.worker --interval 5
 ```
 
-Docker smoke test when Docker is available:
+The worker command runs in a separate terminal. For local-only access, keep the API bound to 127.0.0.1. For a hosted container, configure the binding and persistent volume appropriately.
 
-```bash
-docker build -t stateguard .
-docker run --rm -p 8787:8787 stateguard
-curl http://127.0.0.1:8787/api/health
-```
+## Live model setup
 
-## Submission Notes
+Use an AWS profile or workload role through the normal credential chain; never commit credentials. Set AWS_REGION, STATEGUARD_USE_STRANDS_LLM=1, STATEGUARD_BEDROCK_MODEL_ID, and STATEGUARD_LIVE_DEMO_KEY. The execution identity needs Bedrock model invocation permissions and access to the selected model. User-triggered live investigation requires the demo key. The background worker uses its own configured AWS credentials and does not expose an HTTP model endpoint.
 
-Use the Lambda Function URL for:
+Verify actual tool calls through POST /api/workflows/{id}/investigate before recording. A 503 indicates live analysis was unavailable; there is no substituted model result. Inspect server configuration without sharing credential values.
 
-- Devpost demo URL
-- Demo video
-- README live demo section after deployment
+## Historical deployment
 
-The GitHub repo can stay private during prep, but Devpost requires a public source-code URL before final submission. Flip `mofeed28/stateguard` public only when the submission package is ready.
+The earlier fixture demo used Lambda function stateguard, handler stateguard.app.handler, Python 3.11, and Mangum:
+
+https://gzmrlkrayb3oz3qe22g2v5tv7e0qoqfa.lambda-url.us-east-1.on.aws/
+
+That URL has not been verified against this revision. Do not deploy the new stateful workflow with /tmp persistence and claim durable cross-instance operation. Replace SQLite with a shared transactional store for a scaled Lambda deployment. The supplied Dockerfile can serve as a single-host starting point; configure persistence separately.
+
+## Production requirements
+
+A real delivery provider adapter must provide stable message identifiers, fresh status, and idempotent sends. Add authenticated operator identity, durable audit retention, resource limits, and shared persistence before connecting real accounts. This public sandbox contains constructed examples only. No external messages or notifications are sent.

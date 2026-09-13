@@ -8,3 +8,19 @@ __pycache__/
 .mypy_cache/
 .env
 .DS_Store
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+.stateguard-live-key
+.secrets/
+
+.test-gmail-temp/
+
+# Regenerable video intermediates
+artifacts/demo/frame-*.png
+artifacts/demo/frames.txt
+artifacts/demo/voice-*.wav
+artifacts/demo/narration.wav
+artifacts/demo/contact.png
+artifacts/demo/video-review.png

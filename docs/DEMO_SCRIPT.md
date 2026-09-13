@@ -1,31 +1,39 @@
-# Demo Script
+# StateGuard narrated demo
 
-Target length: 90 seconds.
+Duration: 2 minutes 36 seconds. Edited walkthrough using actual app screenshots and synthesized Windows narration. Email delivery is simulated. Live model: OpenAI gpt-5-mini through Strands.
 
-## Opening
+StateGuard
 
-StateGuard is a reality-check layer for autonomous agents. It catches the gap between what an agent believes happened and what actually happened before the next risky action runs.
+A timeout does not mean an email failed. An autonomous worker can retry after the provider already delivered, sending your client the same message twice. StateGuard checks the evidence before the next action.
 
-## Problem
+01 / Detect the mismatch
 
-Background agents do useful work while humans are away: they send messages, schedule work, place orders, and update systems. But the dangerous failures happen when the agent's internal state becomes stale. A provider times out, a fill arrives late, or an external system rejects a request, and the agent keeps moving as if its belief is still true.
+Here is the working application. This is an isolated, stateful email sandbox: no real email is sent. The worker believes the message was not sent, but the provider ledger already records one delivery. This disagreement is the problem we need to resolve.
 
-## Demo
+02 / Stop the duplicate
 
-In this replay, an execution agent believes the position is zero, so it plans a fresh entry. But the exchange tells a different story: an earlier cancel response was ambiguous, and the prior order fills anyway. StateGuard reconstructs the timeline, compares belief against external reality, and detects duplicate-entry risk before the workflow can continue.
+We run the worker. StateGuard checks the provider and blocks the retry before another delivery occurs. The workflow now needs approval, and the delivery count stays at one. The action gate runs in a SQLite transaction, so repeated worker calls cannot create another sandbox delivery.
 
-The dashboard shows the investigation path: Supervisor, Timeline Investigator, Reality Reconciler, Risk Sentinel, Human Approval Agent, and Handoff Writer. The result is not just an alert. StateGuard produces structured output, blocks unsafe autonomous actions, and creates a sanitized handoff for the operator.
+03 / Investigate with Strands
 
-The same pattern also appears in communications and scheduling: an email marked sent even though the provider rejected it, and a clinic shift marked covered even though calendar confirmations are still pending. The point is broader than trading. StateGuard is for any autonomous workflow where stale state can trigger bad real-world action.
+Now a real Strands agent investigates using OpenAI. It calls the worker history tool and the delivery provider tool to collect fresh evidence. Its structured report explains the disagreement and recommends reconciliation. The agent can advise, but it cannot send a message or approve its own recommendation.
 
-Now switch to the custom simulator. Enter a simple invoice mismatch: the agent believes invoice #104 is paid, but the bank API says it is unpaid. StateGuard creates the same approval-gated decision path from fresh input, which shows the product is not only a set of pre-cooked replays.
+04 / Approve and verify
 
-Mention that the Live Strands Analysis button is optional. The core demo remains deterministic for reliability, while the live path can call a Strands Agent with Bedrock when model access is enabled. Paid live calls are protected by a demo key so the public URL cannot drain credits.
+We approve reconciliation through the application. This updates the worker's belief to match confirmed delivery. The workflow completes with exactly one delivery. The audit trail records the approval and verification. Approval is tied to the state version, so changed evidence cannot be overwritten by a stale decision.
 
-## AWS And Strands
+05 / Avoid needless interruptions
 
-The demo is running on AWS with a public Lambda Function URL. The production shape maps to Strands agents with custom tools, EventBridge or SQS for event ingestion, DynamoDB for incident state, and CloudWatch-style observability.
+Safety should not require a human for every action. In the healthy scenario, both sources agree the message has not been sent. The worker sends once in the sandbox and completes without human approval. When provider evidence is pending or unavailable, the worker instead holds the retry until the evidence changes.
 
-## Close
+Built and verified
 
-Most agent safety tools focus on prompts. StateGuard focuses on operational truth: whether the agent's memory of the world still matches the world before it acts again.
+The current implementation combines Strands tool use, structured analysis, a transactional action gate, versioned approvals, and persisted audit events. Twenty eight regression tests pass, including concurrent worker calls and stale approvals. These are controlled sandbox results, not a claim of production reliability.
+
+Check reality. Verify recovery.
+
+A real email provider adapter and shared cloud persistence are the next steps. Bedrock remains supported, while this recorded investigation uses OpenAI through Strands. StateGuard demonstrates one concrete outcome: identify the mismatch, prevent the duplicate, and verify recovery before the workflow moves on.
+
+Video: artifacts/demo/StateGuard-demo.mp4
+Captions: artifacts/demo/StateGuard-demo.srt
+Not uploaded or submitted.

@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from mangum import Mangum
+from botocore.exceptions import ClientError
+from strands.types.exceptions import ModelThrottledException
 
 from .agents import (
     ROLES,
@@ -19,6 +21,7 @@ from .agents import (
 )
 from .fixtures import adapter_examples, all_incidents, get_incident
 from .models import CustomMismatchRequest, CustomMismatchResponse
+from . import workflow
 from .tools import (
     classify_automation_risk,
     detect_state_mismatches,
@@ -60,7 +63,7 @@ def _live_origin_is_allowed(request: Request) -> bool:
 async def protect_live_llm_endpoint(request: Request, call_next):
     if (
         _live_mode_requires_key()
-        and request.url.path == "/api/simulate-mismatch/live"
+        and (request.url.path == "/api/simulate-mismatch/live" or request.url.path.endswith("/investigate"))
         and request.method == "POST"
     ):
         if not _live_origin_is_allowed(request):
@@ -142,11 +145,60 @@ def observability(incident_id: str):
 
 @app.post("/api/incidents/{incident_id}/approve")
 def approve(incident_id: str) -> dict[str, str]:
-    return {
-        "incident_id": incident_id,
-        "status": "approved_for_safe_maintenance",
-        "next_step": "pause_new_actions_then_reconcile_external_state",
-    }
+    if not get_incident(incident_id):
+        raise HTTPException(status_code=404, detail="incident_not_found")
+    raise HTTPException(status_code=409, detail="Replay is read-only. Use the executable sandbox to approve a real state transition.")
+
+
+def _workflow_call(fn, *args):
+    try:
+        return fn(*args)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="workflow_not_found")
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
+
+
+@app.post("/api/workflows")
+def start_workflow(payload: workflow.StartRequest):
+    return workflow.create_run(payload.scenario)
+
+
+@app.get("/api/workflows/{run_id}")
+def read_workflow(run_id: str):
+    return _workflow_call(workflow.get_run, run_id)
+
+
+@app.post("/api/workflows/{run_id}/tick")
+def run_worker(run_id: str):
+    return _workflow_call(workflow.tick, run_id)
+
+
+@app.post("/api/workflows/{run_id}/approve")
+def approve_workflow(run_id: str, payload: workflow.ApprovalRequest):
+    return _workflow_call(workflow.approve_run, run_id, payload.version)
+
+
+@app.post("/api/workflows/{run_id}/provider")
+def change_provider(run_id: str, payload: workflow.ProviderRequest):
+    return _workflow_call(workflow.update_provider, run_id, payload.state)
+
+
+@app.post("/api/workflows/{run_id}/investigate")
+def investigate_workflow(run_id: str):
+    try:
+        return _workflow_call(workflow.investigate_run, run_id)
+    except HTTPException:
+        raise
+    except ModelThrottledException:
+        raise HTTPException(status_code=429, detail="Model provider usage limit reached. Check the selected provider quota and billing.")
+    except ClientError as exc:
+        if exc.response.get("Error", {}).get("Code") == "ThrottlingException":
+            raise HTTPException(status_code=429, detail="Model provider usage limit reached. Check the selected provider quota and billing.")
+        raise HTTPException(status_code=503, detail="Bedrock rejected the model request. Check model access and AWS permissions.")
+    except Exception:
+        # Never expose SDK exception details, credentials, or provider internals.
+        raise HTTPException(status_code=503, detail="Live Strands analysis unavailable. Check server model configuration. No AI result was substituted.")
 
 
 @app.post("/api/simulate-mismatch")

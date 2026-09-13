@@ -1,0 +1,94 @@
+{
+  "run_id": "c1501ad3db884ebfb651caff7f6d9551",
+  "status": "needs_approval",
+  "deliveries": 1,
+  "analysis": {
+    "mode": "live_strands",
+    "model": "gpt-5-mini",
+    "duration_ms": 10806,
+    "provider": "openai",
+    "usage": {
+      "inputTokens": 2413,
+      "outputTokens": 267,
+      "totalTokens": 2680
+    },
+    "trace": [
+      {
+        "tool": "inspect_worker_history",
+        "duration_ms": 4.46,
+        "output": {
+          "belief": "not_sent",
+          "events": [
+            {
+              "ts": "2026-09-13T10:51:47.792500+00:00",
+              "event": "workflow.started",
+              "detail": "Worker believes delivery failed and intends to retry message renewal-104."
+            },
+            {
+              "ts": "2026-09-13T10:51:47.792517+00:00",
+              "event": "provider.initial_state",
+              "detail": "delivered"
+            },
+            {
+              "ts": "2026-09-13T10:51:47.820875+00:00",
+              "event": "action.blocked",
+              "detail": "Provider already delivered the message. Retry was stopped before sending."
+            }
+          ],
+          "version": 1
+        }
+      },
+      {
+        "tool": "query_delivery_provider",
+        "duration_ms": 6.37,
+        "output": {
+          "provider": "delivered",
+          "deliveries": 1,
+          "version": 1
+        }
+      },
+      {
+        "tool": "inspect_worker_history",
+        "duration_ms": 5.0,
+        "output": {
+          "belief": "not_sent",
+          "events": [
+            {
+              "ts": "2026-09-13T10:51:47.792500+00:00",
+              "event": "workflow.started",
+              "detail": "Worker believes delivery failed and intends to retry message renewal-104."
+            },
+            {
+              "ts": "2026-09-13T10:51:47.792517+00:00",
+              "event": "provider.initial_state",
+              "detail": "delivered"
+            },
+            {
+              "ts": "2026-09-13T10:51:47.820875+00:00",
+              "event": "action.blocked",
+              "detail": "Provider already delivered the message. Retry was stopped before sending."
+            }
+          ],
+          "version": 1
+        }
+      },
+      {
+        "tool": "query_delivery_provider",
+        "duration_ms": 3.97,
+        "output": {
+          "provider": "delivered",
+          "deliveries": 1,
+          "version": 1
+        }
+      }
+    ],
+    "summary": "Investigation of retry for message renewal-104 shows worker believed delivery failed and attempted a retry, but provider evidence indicates message was already delivered and the retry was blocked. No conflicting external events present.",
+    "evidence": [
+      "Worker history event at 2026-09-13T10:51:47.792500Z: workflow.started \u2014 worker believes delivery failed and intends to retry message renewal-104.",
+      "Worker history event at 2026-09-13T10:51:47.792517Z: provider.initial_state \u2014 provider reported 'delivered'.",
+      "Worker history event at 2026-09-13T10:51:47.820875Z: action.blocked \u2014 retry was stopped because provider already marked message delivered.",
+      "Provider ledger query result: provider='delivered', deliveries=1, version=1"
+    ],
+    "recommendation": "reconcile"
+  }
+}

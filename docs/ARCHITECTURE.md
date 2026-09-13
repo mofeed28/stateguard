@@ -1,51 +1,35 @@
-# Architecture
+# StateGuard architecture
 
-Standalone diagram: [`docs/architecture-diagram.html`](architecture-diagram.html)
+## Implemented now
 
 ```mermaid
 flowchart LR
-    A[Autonomous workflow logs] --> B[Event Ingestion]
-    C[External state snapshots] --> B
-    D[Policy and approval rules] --> E[Supervisor Agent]
-    B --> E
-    E --> F[Timeline Investigator]
-    E --> G[Reality Reconciler]
-    E --> H[Risk Sentinel]
-    F --> I[Incident State]
-    G --> I
-    H --> I
-    I --> J[Human Approval Agent]
-    J --> K[Decision Card]
-    I --> L[Handoff Writer]
-    L --> M[Sanitized Report]
-    I --> N[Structured Output]
-    I --> O[Observability Events]
+  W[Background email worker] --> G[Transactional action gate]
+  P[Stateful sandbox provider ledger] --> G
+  G -->|healthy| D[One sandbox delivery]
+  G -->|uncertain| Q[Wait for new evidence]
+  G -->|contradiction| H[Versioned approval card]
+  H --> R[Revalidate and reconcile]
+  R --> V[Verify delivery and complete]
+  S[Strands agent on OpenAI or Bedrock] --> T[Read worker history tool]
+  S --> E[Query provider evidence tool]
+  T --> DB[(SQLite run state and audit log)]
+  E --> DB
+  S --> A[Structured diagnosis and measured tool trace]
+  G --> DB
+  R --> DB
 ```
 
-## Data Flow
+`workflow.py` implements the sandbox state machine, provider ledger, atomic guard, approval checks, and live investigation. `worker.py` runs an independent background polling process. FastAPI exposes controls; the dashboard presents current state, real audit events, and optional model output.
 
-1. Connectors submit planned actions, local belief snapshots, external observations, and provider responses.
-2. The Supervisor Agent opens or updates an incident.
-3. The Timeline Investigator orders causality across logs, fills, API responses, and websocket delays.
-4. The Reality Reconciler checks expected state against observed state.
-5. The Risk Sentinel assigns severity and recommends the safest next action.
-6. The Human Approval Agent presents an approval card when intervention is needed.
-7. The Handoff Writer produces a sanitized audit trail.
-8. The API emits a Pydantic-validated structured decision object and production-style observability events.
+Each run has a random identifier and independent state. These identifiers are demo capabilities, not a production authentication system. Approval records the expected version and permits reconciliation only; it never authorizes a resend. A provider change invalidates prior analysis and approval. The local SQLite transaction covers the sandbox evidence check and send; this atomicity does not automatically extend to an external API.
 
-## AWS Deployment Shape
+Live investigation uses a single Strands agent with two read-only evidence tools. It is not a six-agent system. The archived examples are deterministic illustrations. Pydantic validates actual live structured output. Tool output and elapsed time are recorded from execution, not synthesized.
 
-- Amazon Bedrock or AgentCore hosts the Strands agents.
-- Amazon EventBridge accepts workflow events from integrations.
-- Amazon SQS buffers investigation jobs.
-- Amazon DynamoDB stores incident state and replay data.
-- Amazon ECS or AWS Lambda runs API and worker processes.
-- Amazon CloudWatch collects operational telemetry.
-- OpenTelemetry-style spans can map directly from the visible workflow trace and observability event stream.
+## Required before production
 
-## Strands SDK Mapping
+Implement a real provider adapter with stable message IDs/idempotency, authenticated operator access, bounded retention, and shared durable storage. For AWS scaling, replace SQLite with conditional DynamoDB operations or another shared transactional store and enqueue worker jobs. AgentCore, EventBridge, SQS, and CloudWatch integrations remain future work. Lambda /tmp is unsuitable for shared durable state.
 
-- Custom tools: `load_incident_events`, `detect_state_mismatches`, `classify_automation_risk`, and `generate_sanitized_handoff`.
-- Structured output: `StructuredInvestigationOutput` validates the approval decision, blocked actions, mismatch count, severity, and confidence.
-- Multi-agent workflow: StateGuard passes the same incident through Supervisor, Timeline Investigator, Reality Reconciler, Risk Sentinel, Human Approval Agent, and Handoff Writer roles, then exposes that sequence as a visible workflow trace.
-- Production operation: the API can run as an in-process FastAPI app locally, then move to AgentCore Runtime for AWS-hosted execution.
+## Separate real-email experiment
+
+The Gmail CLI persists a single send claim, sends one explicitly authorized self-email, injects acknowledgment loss, and checks Sent/Inbox evidence. It remains separate from the dashboard and agent tools. See the README for correlation limitations and safe rechecking.

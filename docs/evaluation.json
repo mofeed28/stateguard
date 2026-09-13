@@ -1,0 +1,42 @@
+{
+  "scope": "Four constructed sandbox scenarios; no real-world effectiveness or LLM accuracy claim.",
+  "baseline": "Retry once from local not_sent belief; duplicate prediction only.",
+  "results": [
+    {
+      "scenario": "accepted_timeout",
+      "initial_deliveries": 1,
+      "naive_retry_would_duplicate": true,
+      "guarded_deliveries": 1,
+      "guarded_status": "needs_approval",
+      "human_approval_requested": true
+    },
+    {
+      "scenario": "healthy",
+      "initial_deliveries": 0,
+      "naive_retry_would_duplicate": false,
+      "guarded_deliveries": 1,
+      "guarded_status": "completed",
+      "human_approval_requested": false
+    },
+    {
+      "scenario": "delayed",
+      "initial_deliveries": 0,
+      "naive_retry_would_duplicate": false,
+      "guarded_deliveries": 0,
+      "guarded_status": "waiting",
+      "human_approval_requested": false
+    },
+    {
+      "scenario": "unavailable",
+      "initial_deliveries": 0,
+      "naive_retry_would_duplicate": false,
+      "guarded_deliveries": 0,
+      "guarded_status": "waiting",
+      "human_approval_requested": false
+    }
+  ],
+  "confirmed_duplicate_cases_prevented": "1/1",
+  "healthy_cases_incorrectly_blocked": "0/1",
+  "uncertain_cases_held_without_approval": "2/2",
+  "live_model_evaluated": false
+}

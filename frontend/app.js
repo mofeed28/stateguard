@@ -101,7 +101,7 @@ async function loadReplay({ animate = false } = {}) {
     const card = el("div", "agent");
     card.append(
       el("strong", "", step.agent),
-      el("small", "", `${step.role} / ${Math.round(step.confidence * 100)}% confidence`),
+      el("small", "", `${step.role} / scripted illustration`),
       el("p", "", step.finding)
     );
     agents.append(card);
@@ -115,7 +115,7 @@ async function loadReplay({ animate = false } = {}) {
       el("strong", "", step.agent),
       el("code", "", step.tool),
       el("p", "", step.output_summary),
-      el("small", "", `${step.duration_ms} ms / ${step.input_summary}`)
+      el("small", "", `Replay step (runtime not measured) / ${step.input_summary}`)
     );
     trace.append(row);
   }

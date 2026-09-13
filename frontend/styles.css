@@ -16,6 +16,14 @@
   box-sizing: border-box;
 }
 
+.workflow-controls { margin: 20px 0; flex-wrap: wrap; }
+#workflowSection { margin-bottom: 28px; }
+#workflowSection h2, #workflowSection h3, #workflowSection p { margin-bottom: 12px; }
+#workflowSection .metrics { margin: 20px 0; }
+#workflowSection pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+#workflowError { color: var(--red); }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+
 body {
   margin: 0;
   background: var(--bg);

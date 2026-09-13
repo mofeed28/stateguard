@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from .redaction import redact
 
 from .models import (
     AgentStep,
@@ -93,7 +94,7 @@ class StrandsRoleRegistry:
 
 
 def investigate(incident: Incident) -> InvestigationResult:
-    _registry = StrandsRoleRegistry()
+    # Archived replays are fixture illustrations, not live agent execution.
     if incident.id == "tradeops-ambiguous-cancel-double-entry":
         return investigate_tradeops(incident)
     if incident.id == "inbox-undelivered-followup":
@@ -379,7 +380,7 @@ def build_execution_trace(
             tool=tool_by_agent.get(step.agent, "internal_reasoning"),
             input_summary=f"incident={incident.id}",
             output_summary=output_by_role.get(step.role, step.finding),
-            duration_ms=118 + (index * 37),
+            duration_ms=0,  # Replay has no measured model/tool runtime.
         )
         for index, step in enumerate(agent_steps)
     ]
@@ -439,6 +440,7 @@ def build_structured_output(result: InvestigationResult) -> StructuredInvestigat
 
 
 def simulate_custom_mismatch(payload: CustomMismatchRequest) -> CustomMismatchResponse:
+    payload = payload.model_copy(update={key: redact(value) for key, value in payload.model_dump().items()})
     incident_id = "custom-simulated-mismatch"
     incident = Incident(
         id=incident_id,
@@ -490,7 +492,7 @@ def simulate_custom_mismatch(payload: CustomMismatchRequest) -> CustomMismatchRe
         AgentStep(
             agent="Reality Reconciler",
             role="reconciliation",
-            finding="Detected that the submitted agent belief conflicts with the external reality statement.",
+            finding="Free-text statements require verification against a provider; this offline preview cannot establish semantic conflict.",
             confidence=0.88,
         ),
         AgentStep(
@@ -514,7 +516,7 @@ def simulate_custom_mismatch(payload: CustomMismatchRequest) -> CustomMismatchRe
     ]
     mismatches = [
         Mismatch(
-            title="Submitted belief conflicts with external reality",
+            title="Submitted state needs provider verification",
             expected=payload.agent_belief,
             observed=payload.external_reality,
             evidence_event_indexes=[0, 1, 2],
@@ -532,8 +534,7 @@ def simulate_custom_mismatch(payload: CustomMismatchRequest) -> CustomMismatchRe
             "Do not mark the workflow resolved from internal state alone.",
         ],
         rationale=(
-            "The submitted scenario shows a direct conflict between autonomous belief and external reality. "
-            "StateGuard blocks continuation because the next action depends on false or unverified state."
+            "This offline text preview cannot establish external truth. Verify the supplied statements through a provider before acting."
         ),
     )
     result = InvestigationResult(
@@ -545,6 +546,15 @@ def simulate_custom_mismatch(payload: CustomMismatchRequest) -> CustomMismatchRe
         sanitized_handoff=build_handoff(incident, mismatches, decision),
         observability_events=build_observability_events(incident, agent_steps, len(mismatches)),
     )
+    if payload.agent_belief.strip().casefold() == payload.external_reality.strip().casefold():
+        result.incident.status = "consistent_text"
+        result.incident.severity = Severity.low
+        result.mismatches = []
+        result.decision = DecisionCard(title="Submitted statements match", recommended_action="No text mismatch found. Verify provider state before real execution.", requires_approval=False, blocked_actions=[], rationale="The normalized input statements are identical; this does not independently verify delivery.")
+        result.agent_steps = []
+        result.execution_trace = []
+        result.observability_events = []
+        result.sanitized_handoff = build_handoff(result.incident, [], result.decision)
     return CustomMismatchResponse(
         result=result,
         structured_output=build_structured_output(result),
@@ -552,7 +562,7 @@ def simulate_custom_mismatch(payload: CustomMismatchRequest) -> CustomMismatchRe
             f"Without StateGuard, the workflow may continue with: {payload.risky_action}"
         ),
         with_stateguard=(
-            "With StateGuard, the risky action is paused behind approval until external state is reconciled."
+            "Text preview only: no external workflow was changed. Use the executable sandbox to test enforcement."
         ),
     )
 
@@ -721,7 +731,7 @@ def build_handoff(
             decision.recommended_action,
             "",
             "sanitization:",
-            "No keys, secret paths, raw credentials, or unsanitized account identifiers included.",
+            "Known credential assignments, authentication values, and email addresses are redacted. Review free text before sharing; redaction is best-effort.",
         ]
     )
-    return "\n".join(lines)
+    return redact("\n".join(lines))
