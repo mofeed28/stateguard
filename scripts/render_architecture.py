@@ -52,7 +52,7 @@ for x,n,title in [(65,'01','Evidence'),(660,'02','Investigation'),(1255,'03','Re
  text(x,215,n,21,'#536cf0',True);text(x+45,209,title,30,'#172438',True)
 card(65,285,480,195,'Saved send attempt','Saved before sending; acknowledgment deliberately withheld.',eyebrow='LOCAL RECORD')
 card(65,560,480,210,'Gmail API','Fresh metadata for the existing self-email: matching message count, Sent and Inbox labels.',accent='#148772',eyebrow='REAL PROVIDER · OAUTH 2.0')
-card(65,880,480,215,'Provider sandbox','Separate worker, evidence tools and transactional gate. Tests healthy and uncertain states.',accent='#7b6b96',eyebrow='SEPARATE TEST PATH')
+card(65,880,480,190,'Provider sandbox','Background worker tests healthy, uncertain and conflicting states.',accent='#7b6b96',eyebrow='SEPARATE TEST PATH')
 card(660,380,480,255,'Read-only evidence tools','inspect_send_attempt\nquery_gmail_receipt',eyebrow='STRANDS TOOLS')
 # Additional explanatory line below tool names.
 wrap(705,550,'Only scoped facts reach the model; no mailbox address or message body.',390,21)
@@ -65,7 +65,8 @@ card(1255,940,480,150,'SQLite','Recovery state, versions and audit events on one
 # Evidence flows
 arrow([(545,383),(595,383),(595,455),(660,455)])
 arrow([(545,665),(605,665),(605,580),(660,580)],'#148772')
-# Sandbox is a separate implementation, not a source for Gmail-specific tools.
+arrow([(545,975),(600,975),(600,610),(660,610)],'#9c8fae',True)
+text(552,1000,'test tools',16,'#7b6b96')
 
 arrow([(850,635),(850,745)],'#536cf0');arrow([(950,745),(950,635)],'#536cf0')
 text(689,678,'evidence',17,'#536cf0');text(960,678,'tool calls',17,'#536cf0')

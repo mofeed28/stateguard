@@ -46,9 +46,10 @@ provider identifier; the displayed proof is restricted to this controlled test.
 
 ## Diagram files
 
-- `architecture-diagram.png`: corrected diagram for the current implementation and Devpost upload.
-- `architecture-diagram.svg`: editable vector version of the corrected diagram.
+- `architecture-diagram.png`: selected diagram for Devpost upload.
+- `architecture-diagram.svg`: editable vector version.
 - `architecture-diagram.html`: browser version served at `/architecture`.
-- `architecture-diagram-first.png` (also SVG/HTML): preserved first redesign, kept for comparison. Its sandbox connector points toward Gmail-specific tools; use the corrected main version when describing the implementation.
 
-Regenerate the main files with `python scripts/render_architecture.py` (Pillow and Windows Segoe UI fonts required).
+The dashed sandbox connector represents the separate test investigation path; the sandbox uses its own tools rather than the Gmail-specific tools named in the diagram.
+
+Regenerate these files with `python scripts/render_architecture.py` (Pillow and Windows Segoe UI fonts required).
