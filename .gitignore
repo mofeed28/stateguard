@@ -24,3 +24,13 @@ artifacts/demo/voice-*.wav
 artifacts/demo/narration.wav
 artifacts/demo/contact.png
 artifacts/demo/video-review.png
+
+artifacts/gmail-demo/frame-*.png
+artifacts/gmail-demo/frames.txt
+artifacts/gmail-demo/voice-*.wav
+artifacts/gmail-demo/narration.wav
+artifacts/gmail-demo/video-review.png
+
+artifacts/gmail-live/capture-*.png
+artifacts/gmail-live/gap-*.png
+artifacts/gmail-live/live-frames.txt

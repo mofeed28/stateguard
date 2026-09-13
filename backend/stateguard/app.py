@@ -61,11 +61,11 @@ def _live_origin_is_allowed(request: Request) -> bool:
 
 @app.middleware("http")
 async def protect_live_llm_endpoint(request: Request, call_next):
-    if (
+    if (request.url.path.startswith("/api/gmail-demo") or (
         _live_mode_requires_key()
         and (request.url.path == "/api/simulate-mismatch/live" or request.url.path.endswith("/investigate"))
         and request.method == "POST"
-    ):
+    )):
         if not _live_origin_is_allowed(request):
             return JSONResponse(
                 status_code=403, content={"detail": "live_origin_not_allowed"}
@@ -234,3 +234,24 @@ def index() -> FileResponse:
 
 
 handler = Mangum(app)
+
+
+@app.post("/api/gmail-demo/{action}")
+def gmail_demo_action(action: str, payload: dict):
+    from . import gmail_recovery
+    try:
+        if action == "load":
+            return gmail_recovery.read()
+        if action == "refresh":
+            return gmail_recovery.refresh()
+        if action == "investigate":
+            return gmail_recovery.investigate()
+        if action == "approve":
+            return gmail_recovery.approve(int(payload["version"]))
+        raise HTTPException(status_code=404, detail="Unknown Gmail demo action")
+    except HTTPException:
+        raise
+    except (ValueError, KeyError) as exc:
+        raise HTTPException(status_code=409, detail="State or evidence changed. Refresh and review before approving.") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Gmail recovery unavailable. Check authorization and provider configuration. No email was sent.") from exc

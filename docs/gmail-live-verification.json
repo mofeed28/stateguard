@@ -1,0 +1,78 @@
+{
+  "version": 2,
+  "belief": "delivered",
+  "status": "completed",
+  "retry_allowed": false,
+  "analysis": {
+    "model": "gpt-5-mini",
+    "provider": "openai",
+    "trace": [
+      {
+        "tool": "inspect_send_attempt",
+        "duration_ms": 1,
+        "output": {
+          "send_claimed": true,
+          "worker_belief": "unknown",
+          "created_at": "2026-09-13T14:20:52.149323+00:00",
+          "fault": "Discard acknowledgment after real Gmail send; controlled injection",
+          "retry_allowed": false
+        }
+      },
+      {
+        "tool": "query_gmail_receipt",
+        "duration_ms": 1725,
+        "output": {
+          "correlation": "subject_account_send_window; Gmail may rewrite Message-ID",
+          "matching_messages": 1,
+          "sent_records": 1,
+          "inbox_records": 1,
+          "checked_at": "2026-09-13T14:33:10.785212+00:00",
+          "source": "Gmail API: existing self-email"
+        }
+      }
+    ],
+    "duration_ms": 11779,
+    "usage": {
+      "inputTokens": 907,
+      "outputTokens": 339,
+      "totalTokens": 1246
+    },
+    "summary": "Investigation of the durable send claim and Gmail receipts for the self-test email shows a controlled injection of acknowledgment loss after a real Gmail send. There is one matching message in Sent and one matching message in Inbox for the approved self-email; this is the direct evidence available. Worker belief about receipt is unknown and retries are not allowed.",
+    "evidence": [
+      "Inspect send attempt: send_claimed=true, created_at=2026-09-13T14:20:52.149323+00:00, fault='Discard acknowledgment after real Gmail send; controlled injection', retry_allowed=false, worker_belief=unknown.",
+      "Gmail query: 'matching_messages':1, 'sent_records':1, 'inbox_records':1, checked_at=2026-09-13T14:33:10.785212+00:00, source='Gmail API: existing self-email', correlation note='subject_account_send_window; Gmail may rewrite Message-ID'."
+    ],
+    "recommendation": "reconcile"
+  },
+  "evidence": {
+    "correlation": "subject_account_send_window; Gmail may rewrite Message-ID",
+    "matching_messages": 1,
+    "sent_records": 1,
+    "inbox_records": 1,
+    "checked_at": "2026-09-13T14:34:17.132301+00:00",
+    "source": "Gmail API: existing self-email"
+  },
+  "events": [
+    {
+      "ts": "2026-09-13T14:32:27.119345+00:00",
+      "event": "send.claim.loaded",
+      "detail": "Persisted send attempt found. Worker acknowledgment is unknown; retries are held."
+    },
+    {
+      "ts": "2026-09-13T14:32:52.344775+00:00",
+      "event": "gmail.evidence.checked",
+      "detail": "Fresh Gmail metadata checked. Retry remains disabled."
+    },
+    {
+      "ts": "2026-09-13T14:33:15.427664+00:00",
+      "event": "strands.investigation.completed",
+      "detail": "Both tools executed; fresh Gmail evidence recorded. Agent has no send or approval tool."
+    },
+    {
+      "ts": "2026-09-13T14:34:17.133806+00:00",
+      "event": "approval.reconciled",
+      "detail": "Operator reconciled local belief after fresh Gmail verification. No resend occurred."
+    }
+  ],
+  "scope": "Existing real self-email; acknowledgment loss was deliberately injected. No new mail is sent."
+}

@@ -32,4 +32,14 @@ Implement a real provider adapter with stable message IDs/idempotency, authentic
 
 ## Separate real-email experiment
 
-The Gmail CLI persists a single send claim, sends one explicitly authorized self-email, injects acknowledgment loss, and checks Sent/Inbox evidence. It remains separate from the dashboard and agent tools. See the README for correlation limitations and safe rechecking.
+The Gmail CLI persists a single send claim, sends one explicitly authorized self-email, injects acknowledgment loss, and checks Sent/Inbox evidence. The send operation stays in the CLI; the dashboard and agent tools now read its existing claim and verify receipt. See the README for correlation limitations and safe rechecking.
+
+## Real Gmail dashboard recovery
+
+`gmail_recovery.py` exposes read-only Gmail checks and a local reconciliation state
+machine in its own SQLite table. The dashboard loads the existing durable claim,
+checks receipt metadata, invokes two Strands tools (`inspect_send_attempt` and
+`query_gmail_receipt`), and approves only after revalidation and a version check.
+The Gmail dashboard and agent cannot send messages. It uses the existing self-test
+from the separate CLI. Subject/account/time correlation is weaker than an immutable
+provider identifier; the displayed proof is restricted to this controlled test.

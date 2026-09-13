@@ -37,3 +37,32 @@ A real email provider adapter and shared cloud persistence are the next steps. B
 Video: artifacts/demo/StateGuard-demo.mp4
 Captions: artifacts/demo/StateGuard-demo.srt
 Not uploaded or submitted.
+
+
+# Real Gmail recovery demo (new)
+
+Duration: 2:24. Actual dashboard captures with edited narration and captions. Reuses the existing real self-email; no new mail sent.
+
+StateGuard / Gmail
+
+This is StateGuard with a real Gmail connection. One approved test email has already been sent to the same account. We deliberately withheld its acknowledgment from the worker. This demonstration reuses that message. It does not send another email, and it does not pretend that the injected failure was a real Gmail outage.
+
+01 / Recover the attempt
+
+We load the send attempt that was saved before the request. The worker belief is unknown, and retry is disabled. The durable claim prevents this demo from authorizing a second send, even after a restart. This is a conservative application safeguard, not a claim that Gmail itself offers exactly once delivery.
+
+02 / Check real evidence
+
+The dashboard now queries Gmail. It finds one matching message with both Sent and Inbox labels. The result includes the time of the fresh check. Gmail rewrote our original Message ID, so the interface openly shows the fallback: the exact subject, sending account, and a narrow send window. That correlation is weaker and must be reviewed.
+
+03 / Investigate with Strands
+
+Next, a real Strands agent investigates using OpenAI. One tool reads the saved send attempt and the injected acknowledgment loss. The other queries Gmail again. Only evidence for the approved test is returned, with mailbox addresses and message bodies excluded. The agent explains the evidence and recommends reconciliation. It has no send tool and no approval tool.
+
+04 / Inspect the tool trace
+
+The trace shows the actual tools called, their measured duration, and their returned evidence. The interface also reports model usage. This is the agent investigating the real Gmail test, not an archived replay. The deterministic recovery gate remains responsible for deciding whether the evidence is sufficient for approval.
+
+05 / Reconcile, without resending
+
+We approve reconciliation in the dashboard. The server rechecks Gmail and validates the decision version before updating local state. The worker now records delivered, recovery is complete, and retry remains disabled. The audit records the approval. Thirty five regression tests pass, including stale approvals and missing Inbox evidence. This proves one controlled self email recovery. Shared cloud storage and production reliability remain future work.

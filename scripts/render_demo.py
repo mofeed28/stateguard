@@ -1,8 +1,8 @@
 from pathlib import Path
-import json,re,wave,textwrap,subprocess
+import json,re,wave,textwrap,subprocess,os
 from PIL import Image,ImageDraw,ImageFont,ImageOps
 import imageio_ffmpeg
-ROOT=Path(__file__).resolve().parents[1]/'artifacts'/'demo'
+ROOT=Path(__file__).resolve().parents[1]/'artifacts'/os.getenv('STATEGUARD_VIDEO_DIR','demo')
 scenes=json.loads((ROOT/'scenes.json').read_text())
 font_dir=Path('C:/Windows/Fonts')
 def font(n,bold=False): return ImageFont.truetype(str(font_dir/('segoeuib.ttf' if bold else 'segoeui.ttf')),n)
@@ -27,7 +27,7 @@ for idx,scene in enumerate(scenes):
  d.text((65,140),'AGENTS FOR HUMANS  /  DEMO WALKTHROUGH',font=font(20),fill='#8ea1bc')
  y=block(d,scene['title'],(65,240),69,880,bold=True)
  y=block(d,scene['subtitle'],(65,y+38),38,850,color='#99b2ff')
- notes=['Evidence before action','Strands + OpenAI','Human approval when needed'] if idx<6 else (['Concurrent calls and stale approvals','Four constructed sandbox scenarios','Production effectiveness not yet measured'] if idx==6 else ['Real provider integration: planned','Shared cloud storage: planned','Working local prototype: demonstrated'])
+ notes=['Fresh provider evidence','Strands + OpenAI','Approval never resends'] if idx<6 else (['Concurrent calls and stale approvals','Four constructed sandbox scenarios','Production effectiveness not yet measured'] if idx==6 else ['Real provider integration: planned','Shared cloud storage: planned','Working local prototype: demonstrated'])
  for j,n in enumerate(notes): d.ellipse((70,y+110+j*62,82,y+122+j*62),fill='#66d6b0'); block(d,n,(105,y+95+j*62),26,810,color='#d0d9e8')
  if scene['image']:
   shot=Image.open(ROOT/scene['image']).convert('RGB'); shot=ImageOps.contain(shot,(790,850)); base.paste(shot,(1050+(790-shot.width)//2,55))
@@ -37,7 +37,7 @@ for idx,scene in enumerate(scenes):
   d.text((1270,235),text,font=font(180,True),fill='#66d6b0')
   block(d,'regression tests passing' if idx==6 else 'delivery after recovery',(1130,500),45,650,bold=True)
   block(d,'Controlled sandbox verification' if idx==6 else 'No duplicate in the demonstrated flow',(1130,640),28,620,color='#aabbd4')
- d.text((65,885),'REAL APP CAPTURES  |  SIMULATED EMAIL DELIVERY',font=font(20,True),fill='#8397b4')
+ d.text((65,885),('REAL APP CAPTURES  |  EXISTING REAL GMAIL SELF-EMAIL' if ROOT.name=='gmail-demo' else 'REAL APP CAPTURES  |  SIMULATED EMAIL DELIVERY'),font=font(20,True),fill='#8397b4')
  chunks=textwrap.wrap(scene['narration'],width=115,break_long_words=False)
  total=sum(len(c) for c in chunks)
  for j,caption in enumerate(chunks):

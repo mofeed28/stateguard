@@ -1,0 +1,79 @@
+1
+00:00:00,000 --> 00:00:07,538
+This is StateGuard with a real Gmail connection. One approved test email has already been sent to the same account.
+
+2
+00:00:07,538 --> 00:00:14,879
+We deliberately withheld its acknowledgment from the worker. This demonstration reuses that message. It does not
+
+3
+00:00:14,879 --> 00:00:21,040
+send another email, and it does not pretend that the injected failure was a real Gmail outage.
+
+4
+00:00:21,040 --> 00:00:28,698
+We load the send attempt that was saved before the request. The worker belief is unknown, and retry is disabled.
+
+5
+00:00:28,698 --> 00:00:36,424
+The durable claim prevents this demo from authorizing a second send, even after a restart. This is a conservative
+
+6
+00:00:36,424 --> 00:00:42,031
+application safeguard, not a claim that Gmail itself offers exactly once delivery.
+
+7
+00:00:42,031 --> 00:00:50,002
+The dashboard now queries Gmail. It finds one matching message with both Sent and Inbox labels. The result includes
+
+8
+00:00:50,002 --> 00:00:57,974
+the time of the fresh check. Gmail rewrote our original Message ID, so the interface openly shows the fallback: the
+
+9
+00:00:57,974 --> 00:01:05,321
+exact subject, sending account, and a narrow send window. That correlation is weaker and must be reviewed.
+
+10
+00:01:05,321 --> 00:01:13,012
+Next, a real Strands agent investigates using OpenAI. One tool reads the saved send attempt and the injected
+
+11
+00:01:13,012 --> 00:01:21,059
+acknowledgment loss. The other queries Gmail again. Only evidence for the approved test is returned, with mailbox
+
+12
+00:01:21,059 --> 00:01:28,964
+addresses and message bodies excluded. The agent explains the evidence and recommends reconciliation. It has no
+
+13
+00:01:28,964 --> 00:01:31,171
+send tool and no approval tool.
+
+14
+00:01:31,171 --> 00:01:38,696
+The trace shows the actual tools called, their measured duration, and their returned evidence. The interface also
+
+15
+00:01:38,696 --> 00:01:46,355
+reports model usage. This is the agent investigating the real Gmail test, not an archived replay. The deterministic
+
+16
+00:01:46,355 --> 00:01:52,681
+recovery gate remains responsible for deciding whether the evidence is sufficient for approval.
+
+17
+00:01:52,681 --> 00:02:00,489
+We approve reconciliation in the dashboard. The server rechecks Gmail and validates the decision version before
+
+18
+00:02:00,489 --> 00:02:08,579
+updating local state. The worker now records delivered, recovery is complete, and retry remains disabled. The audit
+
+19
+00:02:08,579 --> 00:02:16,668
+records the approval. Thirty five regression tests pass, including stale approvals and missing Inbox evidence. This
+
+20
+00:02:16,668 --> 00:02:24,405
+proves one controlled self email recovery. Shared cloud storage and production reliability remain future work.

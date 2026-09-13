@@ -83,9 +83,10 @@ For the separate worker, also set `STATEGUARD_MODEL_PROVIDER=openai` and
 
 ## Real Gmail proof (separate CLI)
 
-The dashboard still uses simulated delivery. A separate Gmail CLI has been
-verified with one authorized self-email; it is not yet connected to the dashboard
-or Strands investigation. Install `python -m pip install -e ".[gmail]"`, save a
+The sandbox section uses simulated delivery. The Real Gmail proof section now
+loads the authorized self-email, queries fresh Gmail metadata, runs a real Strands
+investigation and reconciles local belief after approval. It has no send capability.
+The separate Gmail CLI is used only to create an explicitly authorized self-test. Install `python -m pip install -e ".[gmail]"`, save a
 Desktop OAuth client as `.secrets/gmail-client.json`, and run
 `python scripts/connect_gmail.py`. Tokens stay in the Git-excluded `.secrets/` folder.
 
@@ -107,3 +108,19 @@ self-email proof. This is not a Gmail idempotency or general exactly-once guaran
 The 2:36 video in `artifacts/demo/StateGuard-demo.mp4` documents the earlier sandbox
 flow with real OpenAI analysis. It does not show the later Gmail experiment.
 No updated deployment or contest submission is included in this change.
+
+### Conduct the existing-message Gmail demo
+
+Start `./scripts/start-local.ps1 -Live -Provider openai` after Gmail authorization.
+In **Real Gmail proof**, enter the local demo access key, load the existing attempt,
+check Gmail evidence, investigate with Strands, then reconcile verified receipt.
+All Gmail endpoints require the local key, even when live models are disabled.
+The agent receives only the saved claim facts and scoped counts/correlation notes,
+not mailbox addresses or message bodies. The approval handler rechecks Gmail and
+validates the local version before reconciling. Gmail checks and SQLite updates
+are not a distributed transaction. The same durable claim remains in place.
+
+`docs/gmail-live-verification.json` records a completed real run. The new narrated
+walkthrough is `artifacts/gmail-demo/StateGuard-demo.mp4`; it uses actual app
+screenshots, edited for narration, and is not an uninterrupted screen recording.
+The old sandbox video is retained separately. No new email was sent for this run.

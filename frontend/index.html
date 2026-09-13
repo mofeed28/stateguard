@@ -16,7 +16,7 @@
             <p>Belief vs reality reconciliation</p>
           </div>
         </div>
-        <nav id="sidebarNav">
+        <nav id="sidebarNav"><button class="nav" data-target="#gmailSection">Real Gmail proof</button>
           <button class="nav active" data-target="#workflowSection">Live Workflow</button>
           <button class="nav" data-target="#replaySection">Archived Replays</button>
           <button class="nav" data-target="#agentRunSection">Agent Run</button>
@@ -31,6 +31,25 @@
       </aside>
 
       <section class="workspace">
+        <section class="panel" id="gmailSection">
+          <p class="eyebrow">REAL GMAIL · EXISTING SELF-EMAIL · NO NEW SEND</p>
+          <h2>One real email. Verify before retrying.</h2>
+          <p>Acknowledgment loss was deliberately injected after the approved send. Recover using fresh Gmail evidence.</p>
+          <label for="gmailAccessKey">Gmail demo access key</label>
+          <input id="gmailAccessKey" type="password" autocomplete="off" placeholder="Local demo key, not your Google password">
+          <div class="actions workflow-controls">
+            <button id="gmailLoad" class="primary">Load existing Gmail attempt</button>
+            <button id="gmailRefresh" class="secondary" disabled>Check Gmail evidence</button>
+            <button id="gmailInvestigate" class="secondary" disabled>Investigate Gmail with Strands</button>
+            <button id="gmailApprove" class="secondary" disabled>Reconcile verified receipt</button>
+          </div>
+          <p id="gmailError" role="alert"></p>
+          <div id="gmailState" aria-live="polite">Connect to the saved attempt to begin. This page cannot send email.</div>
+          <h3>Live Gmail investigation</h3><div id="gmailAnalysis">No investigation yet.</div>
+          <h3>Recovery audit</h3><ol id="gmailEvents"></ol>
+          <p>Scope: one self-email. Gmail may rewrite Message-ID; subject/account/send-window correlation is weaker evidence. This is not an exactly-once delivery guarantee.</p>
+        </section>
+
         <section class="panel" id="workflowSection">
           <p class="eyebrow">Client communications · executable sandbox</p>
           <h2>A timeout should not send your client the same email twice.</h2>
@@ -264,5 +283,6 @@
     </main>
     <script src="/assets/app.js"></script>
     <script src="/assets/workflow.js"></script>
+    <script src="/assets/gmail.js"></script>
   </body>
 </html>
