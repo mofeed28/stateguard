@@ -233,6 +233,11 @@ def index() -> FileResponse:
     return FileResponse(f"{FRONTEND_DIR}/index.html")
 
 
+@app.get("/architecture")
+def architecture() -> FileResponse:
+    return FileResponse("docs/architecture-diagram.html")
+
+
 handler = Mangum(app)
 
 

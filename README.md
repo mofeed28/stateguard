@@ -4,7 +4,7 @@ StateGuard prevents an email worker from retrying against stale delivery state. 
 
 ## Working demo
 
-The flagship is an **executable, stateful email-provider sandbox**. No actual email, exchange, bank, or calendar is connected. Archived trading and scheduling examples remain clearly labeled read-only fixture replays.
+The flagship is an **executable, stateful email-provider sandbox**. The sandbox sends no actual email. The separate Real Gmail proof below verifies an existing authorized self-email. Archived trading and scheduling examples remain clearly labeled read-only fixture replays.
 
 1. Start the “Provider delivered, worker saw timeout” workflow.
 2. Run the worker. The provider ledger remains at one delivery and the retry is blocked.
@@ -124,3 +124,7 @@ are not a distributed transaction. The same durable claim remains in place.
 walkthrough is `artifacts/gmail-demo/StateGuard-demo.mp4`; it uses actual app
 screenshots, edited for narration, and is not an uninterrupted screen recording.
 The old sandbox video is retained separately. No new email was sent for this run.
+
+## Additional submission resources
+
+See `docs/FINAL_SUBMISSION_RUNBOOK.md` for the earlier submission checklist; its fixture-era deployment claims must be revalidated against this revision. The architecture diagram is served at `/architecture`. Bedrock can use `STATEGUARD_BEDROCK_MODEL_ID=us.amazon.nova-micro-v1:0` when cross-region inference permissions and quotas allow it.

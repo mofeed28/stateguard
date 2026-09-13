@@ -326,4 +326,3 @@ loadIncidents().then(loadReplay);
 loadAdapters();
 loadTools();
 setupScrollSpy();
-

@@ -7,6 +7,25 @@ from stateguard.app import app
 client = TestClient(app)
 
 
+def test_dashboard_sidebar_has_section_targets():
+    response = client.get("/")
+    assert response.status_code == 200
+    html = response.text
+
+    assert 'data-target="#replaySection"' in html
+    assert 'data-target="#agentRunSection"' in html
+    assert 'data-target="#observabilitySection"' in html
+    assert 'data-target="#adapters"' in html
+    assert 'data-target="#architectureSection"' in html
+    assert 'href="/architecture"' in html
+
+
+def test_architecture_diagram_route_is_available():
+    response = client.get("/architecture")
+    assert response.status_code == 200
+    assert "StateGuard Architecture" in response.text
+
+
 def test_live_process_start_method_uses_spawn_without_fork(monkeypatch):
     monkeypatch.delattr(agents.os, "fork", raising=False)
 

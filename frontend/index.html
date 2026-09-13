@@ -16,13 +16,13 @@
             <p>Belief vs reality reconciliation</p>
           </div>
         </div>
-        <nav id="sidebarNav"><button class="nav" data-target="#gmailSection">Real Gmail proof</button>
-          <button class="nav active" data-target="#workflowSection">Live Workflow</button>
-          <button class="nav" data-target="#replaySection">Archived Replays</button>
-          <button class="nav" data-target="#agentRunSection">Agent Run</button>
-          <button class="nav" data-target="#observabilitySection">Observability</button>
-          <button class="nav" data-target="#adapters">Adapters</button>
-          <button class="nav" data-target="#architectureSection">Architecture</button>
+        <nav id="sidebarNav" aria-label="Dashboard sections"><button class="nav" data-target="#gmailSection" type="button">Real Gmail proof</button>
+          <button class="nav active" data-target="#workflowSection" type="button">Live Workflow</button>
+          <button class="nav" data-target="#replaySection" type="button">Archived Replays</button>
+          <button class="nav" data-target="#agentRunSection" type="button">Agent Run</button>
+          <button class="nav" data-target="#observabilitySection" type="button">Observability</button>
+          <button class="nav" data-target="#adapters" type="button">Adapters</button>
+          <button class="nav" data-target="#architectureSection" type="button">Architecture</button>
         </nav>
         <section class="status">
           <span class="dot"></span>
@@ -262,10 +262,10 @@
             </div>
             <div id="tools" class="tool-list"></div>
           </article>
-          <article class="panel architecture-panel">
+          <article id="architecture-panel" class="panel architecture-panel">
             <div class="panel-head">
               <h3>Production Shape</h3>
-              <span>AWS</span>
+              <a class="panel-link" href="/architecture" target="_blank" rel="noreferrer">Open diagram</a>
             </div>
             <div class="architecture">
               <span>EventBridge</span>

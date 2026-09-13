@@ -29,3 +29,7 @@ That URL has not been verified against this revision. Do not deploy the new stat
 ## Production requirements
 
 A real delivery provider adapter must provide stable message identifiers, fresh status, and idempotent sends. Add authenticated operator identity, durable audit retention, resource limits, and shared persistence before connecting real accounts. This public sandbox contains constructed examples only. No external messages or notifications are sent.
+
+## Provider and architecture updates
+
+The optional Bedrock cross-region inference profile is `us.amazon.nova-micro-v1:0`; configure matching permissions and verify quota. OpenAI is the verified local provider for the new Gmail review. `/architecture` serves the diagram. The historical submission runbook does not establish that the upgraded app is deployed.

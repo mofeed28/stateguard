@@ -32,4 +32,3 @@ def check_evidence(service, attempt):
             "sent_records": sum("SENT" in m["labels"] for m in records),
             "inbox_records": sum("INBOX" in m["labels"] for m in records),
             "records": records}
-
