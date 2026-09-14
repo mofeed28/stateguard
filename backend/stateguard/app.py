@@ -22,6 +22,7 @@ from .agents import (
 from .fixtures import adapter_examples, all_incidents, get_incident
 from .models import CustomMismatchRequest, CustomMismatchResponse
 from . import workflow
+from .runtime_config import value
 from .tools import (
     classify_automation_risk,
     detect_state_mismatches,
@@ -45,7 +46,7 @@ def _live_mode_requires_key() -> bool:
 
 
 def _live_key_is_valid(candidate: str | None) -> bool:
-    live_key = os.getenv("STATEGUARD_LIVE_DEMO_KEY")
+    live_key = value("STATEGUARD_LIVE_DEMO_KEY")
     return bool(live_key and candidate and hmac.compare_digest(candidate, live_key))
 
 
@@ -61,7 +62,7 @@ def _live_origin_is_allowed(request: Request) -> bool:
 
 @app.middleware("http")
 async def protect_live_llm_endpoint(request: Request, call_next):
-    if (request.url.path.startswith("/api/gmail-demo") or (
+    if (request.url.path.startswith("/api/gmail-demo") or (os.getenv("STATEGUARD_STATE_TABLE") and request.url.path.startswith("/api/workflows") and request.method == "POST") or (
         _live_mode_requires_key()
         and (request.url.path == "/api/simulate-mismatch/live" or request.url.path.endswith("/investigate"))
         and request.method == "POST"
@@ -212,7 +213,7 @@ def simulate_mismatch_live(
     x_stateguard_live_key: str | None = Header(default=None),
 ) -> CustomMismatchResponse:
     if _live_mode_requires_key():
-        live_key = os.getenv("STATEGUARD_LIVE_DEMO_KEY")
+        live_key = value("STATEGUARD_LIVE_DEMO_KEY")
         if not live_key:
             raise HTTPException(status_code=403, detail="live_demo_key_not_configured")
         if not x_stateguard_live_key or not _live_key_is_valid(x_stateguard_live_key):
@@ -238,7 +239,15 @@ def architecture() -> FileResponse:
     return FileResponse("docs/architecture-diagram.html")
 
 
-handler = Mangum(app)
+_http_handler = Mangum(app)
+
+
+def handler(event, context):
+    if event.get("source") == "stateguard.worker":
+        from .worker import run_once
+        run_once()
+        return {"status": "processed"}
+    return _http_handler(event, context)
 
 
 @app.post("/api/gmail-demo/{action}")

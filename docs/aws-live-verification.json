@@ -1,0 +1,24 @@
+{
+  "verified_at": "2026-09-14T06:33:30.235176+00:00",
+  "url": "https://gzmrlkrayb3oz3qe22g2v5tv7e0qoqfa.lambda-url.us-east-1.on.aws",
+  "architecture_sha256": "1e3f826057d6f81e8f8b1d61567a434c6d955b32cc9b0df706fb203aff31b84d",
+  "concurrent_sandbox_deliveries": 1,
+  "sandbox_model": "gpt-5-mini",
+  "sandbox_usage": {
+    "inputTokens": 889,
+    "outputTokens": 230,
+    "totalTokens": 1119
+  },
+  "sandbox_tools": [
+    "inspect_worker_history",
+    "query_delivery_provider"
+  ],
+  "gmail_status": "completed",
+  "gmail_retry_allowed": false,
+  "gmail_tools": [
+    "inspect_send_attempt",
+    "query_gmail_receipt"
+  ],
+  "new_email_sent": false,
+  "scheduled_worker_verified": true
+}

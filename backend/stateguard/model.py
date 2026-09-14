@@ -1,16 +1,17 @@
 """Explicit Strands provider selection with bounded requests."""
 import os
+from .runtime_config import value
 
 
 def create_model():
     provider = os.getenv("STATEGUARD_MODEL_PROVIDER", "bedrock").lower()
     if provider == "openai":
         from strands.models.openai import OpenAIModel
-        if not os.getenv("OPENAI_API_KEY", "").strip():
+        if not value("OPENAI_API_KEY", "").strip():
             raise RuntimeError("OPENAI_API_KEY is missing. Add it to the project .env file.")
         model_id = os.getenv("STATEGUARD_OPENAI_MODEL_ID", "gpt-5-mini")
         model = OpenAIModel(model_id=model_id,
-            client_args={"api_key": os.environ["OPENAI_API_KEY"], "max_retries": 0, "timeout": 45.0},
+            client_args={"api_key": value("OPENAI_API_KEY"), "max_retries": 0, "timeout": 45.0},
             params={"max_completion_tokens": 4000, "reasoning_effort": "low"})
     elif provider == "bedrock":
         from strands.models.bedrock import BedrockModel

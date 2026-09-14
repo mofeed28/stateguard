@@ -1,4 +1,4 @@
-"""Standalone background worker for a single-host sandbox deployment."""
+"""Sandbox worker invoked by a local loop or an AWS EventBridge schedule."""
 import argparse
 import logging
 import os

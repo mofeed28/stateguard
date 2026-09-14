@@ -1,55 +1,55 @@
 # StateGuard architecture
 
-## Implemented now
+Two separate recovery paths persist evidence and diagnosis before the API presents them for human review. One Strands agent uses the matching pair of read-only tools per investigation.
 
 ```mermaid
-flowchart LR
-  W[Background email worker] --> G[Transactional action gate]
-  P[Stateful sandbox provider ledger] --> G
-  G -->|healthy| D[One sandbox delivery]
-  G -->|uncertain| Q[Wait for new evidence]
-  G -->|contradiction| H[Versioned approval card]
-  H --> R[Revalidate and reconcile]
-  R --> V[Verify delivery and complete]
-  S[Strands agent on OpenAI or Bedrock] --> T[Read worker history tool]
-  S --> E[Query provider evidence tool]
-  T --> DB[(SQLite run state and audit log)]
-  E --> DB
-  S --> A[Structured diagnosis and measured tool trace]
-  G --> DB
-  R --> DB
+flowchart TB
+  subgraph Sandbox
+    EB[EventBridge every minute] --> W[Lambda sandbox worker]
+    W --> G[Deterministic action gate]
+    G -->|healthy| D[One simulated delivery]
+    G -->|uncertain| Wait[Wait for fresh evidence]
+    G -->|conflict| Hold[Block retry]
+    ST[inspect_worker_history + query_delivery_provider]
+  end
+  subgraph Gmail[Existing Gmail self-test]
+    Claim[Saved send claim] --> GT[inspect_send_attempt + query_gmail_receipt]
+    GmailAPI[Gmail API receipt metadata] --> GT
+  end
+  G --> DB[(DynamoDB state, versions, diagnosis and audit)]
+  DB --> ST
+  ST <--> Agent[Strands agent / OpenAI GPT-5 mini]
+  GT <--> Agent
+  Agent -->|validated report| DB
+  DB --> API[FastAPI on Lambda]
+  API --> UI[Operator dashboard]
+  UI -->|approval with expected version| Gate[Revalidate and reconcile]
+  Gate -->|conditional write| DB
+  GmailAPI --> Gate
+  SM[AWS Secrets Manager] -->|runtime credentials| API
+  SM --> Agent
 ```
 
-`workflow.py` implements the sandbox state machine, provider ledger, atomic guard, approval checks, and live investigation. `worker.py` runs an independent background polling process. FastAPI exposes controls; the dashboard presents current state, real audit events, and optional model output.
+## Execution and persistence
 
-Each run has a random identifier and independent state. These identifiers are demo capabilities, not a production authentication system. Approval records the expected version and permits reconciliation only; it never authorizes a resend. A provider change invalidates prior analysis and approval. The local SQLite transaction covers the sandbox evidence check and send; this atomicity does not automatically extend to an external API.
+`workflow.py` owns the sandbox ledger and action gate. `worker.py` processes ready or waiting runs; EventBridge invokes it every minute on Lambda. Locally it runs as a separate process. New confirmed conflicts trigger live investigation when enabled. The worker never sends a real email.
 
-Live investigation uses a single Strands agent with two read-only evidence tools. It is not a six-agent system. The archived examples are deterministic illustrations. Pydantic validates actual live structured output. Tool output and elapsed time are recorded from execution, not synthesized.
+`storage.py` uses conditional DynamoDB writes on AWS and SQLite transactions locally. Sandbox and Gmail records have separate namespaces. Concurrent cloud writers retry only pure state transitions after a revision conflict; they never retry an external send. Random run IDs and a shared demo key provide demo access control, not individual operator identity.
 
-## Required before production
+`gmail_recovery.py` reads the authorized self-email claim and fresh Gmail metadata. Approval rechecks the provider and expected state version. Dashboard and agent have no email send capability. Credentials come from Secrets Manager using the Lambda role; local development uses ignored files.
 
-Implement a real provider adapter with stable message IDs/idempotency, authenticated operator access, bounded retention, and shared durable storage. For AWS scaling, replace SQLite with conditional DynamoDB operations or another shared transactional store and enqueue worker jobs. AgentCore, EventBridge, SQS, and CloudWatch integrations remain future work. Lambda /tmp is unsuitable for shared durable state.
+Reports contain Pydantic-validated output, actual tool calls, timing and token usage. They are advisory. The deterministic gate owns reconciliation. Reports pass through persisted state and the API before appearing in the dashboard.
 
-## Separate real-email experiment
+## Demonstration limits
 
-The Gmail CLI persists a single send claim, sends one explicitly authorized self-email, injects acknowledgment loss, and checks Sent/Inbox evidence. The send operation stays in the CLI; the dashboard and agent tools now read its existing claim and verify receipt. See the README for correlation limitations and safe rechecking.
+Acknowledgment loss is deliberately injected. Gmail rewrote the supplied Message-ID, so subject/account/time correlation is weaker than a stable provider ID. The one-message Sent-and-Inbox match proves receipt only for this self-test. Gmail reads and state writes are not one distributed transaction.
 
-## Real Gmail dashboard recovery
-
-`gmail_recovery.py` exposes read-only Gmail checks and a local reconciliation state
-machine in its own SQLite table. The dashboard loads the existing durable claim,
-checks receipt metadata, invokes two Strands tools (`inspect_send_attempt` and
-`query_gmail_receipt`), and approves only after revalidation and a version check.
-The Gmail dashboard and agent cannot send messages. It uses the existing self-test
-from the separate CLI. Subject/account/time correlation is weaker than an immutable
-provider identifier; the displayed proof is restricted to this controlled test.
+Sandbox atomicity does not guarantee exactly-once external effects. Production still needs provider idempotency, individual authentication, retention and resource limits. Bedrock is supported but quota-blocked in this account; deployed investigations use OpenAI. Live trading integration, SQS and AgentCore are not implemented.
 
 ## Diagram files
 
-- `architecture-diagram.png`: selected diagram for Devpost upload.
-- `architecture-diagram.svg`: editable vector version.
-- `architecture-diagram.html`: browser version served at `/architecture`.
+- `architecture-diagram.png`: Devpost upload.
+- `architecture-diagram.svg`: editable vector.
+- `architecture-diagram.html`: served at `/architecture`.
 
-The dashed sandbox connector represents the separate test investigation path; the sandbox uses its own tools rather than the Gmail-specific tools named in the diagram.
-
-Regenerate these files with `python scripts/render_architecture.py` (Pillow and Windows Segoe UI fonts required).
+Regenerate with `python scripts/render_architecture.py` (Pillow and Windows Segoe UI fonts).

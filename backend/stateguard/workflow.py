@@ -1,22 +1,18 @@
 """Executable email-retry sandbox. No messages leave this process.
 
-SQLite transactions make provider checks and sandbox sends atomic. A real adapter
-must implement provider idempotency and durable shared storage before deployment.
+SQLite transactions or conditional DynamoDB writes make simulated provider checks
+and state changes atomic. Real adapters still require provider idempotency.
 """
 from __future__ import annotations
 
-import json
 import os
-import sqlite3
-import tempfile
 import time
 from datetime import datetime, timezone
-from contextlib import contextmanager
-from pathlib import Path
 from typing import Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
+from . import storage
 
 
 class StartRequest(BaseModel):
@@ -37,16 +33,7 @@ class Analysis(BaseModel):
     recommendation: Literal["continue", "wait", "reconcile"]
 
 
-@contextmanager
-def _connect():
-    path = Path(os.getenv("STATEGUARD_DB_PATH", str(Path(tempfile.gettempdir()) / "stateguard-sandbox.sqlite3")))
-    conn = sqlite3.connect(path, timeout=10)
-    conn.execute("CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY, data TEXT NOT NULL)")
-    try:
-        with conn:
-            yield conn
-    finally:
-        conn.close()
+_connect = storage.connection
 
 
 def _event(run, event, detail):
@@ -61,38 +48,24 @@ def create_run(scenario: str):
            "prevented_retries": 0, "events": [], "analysis": None}
     _event(run, "workflow.started", "Worker believes delivery failed and intends to retry message renewal-104.")
     _event(run, "provider.initial_state", provider)
-    with _connect() as conn:
-        conn.execute("INSERT INTO runs VALUES (?, ?)", (run["id"], json.dumps(run)))
-    return run
+    return storage.mutate("runs", run["id"], lambda s: None, initial=lambda: run, create_only=True)
 
 
-def get_run(run_id: str):
-    with _connect() as conn:
-        row = conn.execute("SELECT data FROM runs WHERE id = ?", (run_id,)).fetchone()
-    if row is None:
-        raise KeyError(run_id)
-    return json.loads(row[0])
+def get_run(run_id):
+    return storage.get("runs", run_id)
 
 
 def pending_runs():
-    with _connect() as conn:
-        rows = conn.execute("SELECT data FROM runs").fetchall()
-    return [run["id"] for row in rows if (run := json.loads(row[0]))["status"] in ("ready", "waiting")]
+    return [run["id"] for run in storage.all_records("runs") if run["status"] in ("ready", "waiting")]
 
 
 def _mutate(run_id, action):
-    with _connect() as conn:
-        conn.execute("BEGIN IMMEDIATE")
-        row = conn.execute("SELECT data FROM runs WHERE id = ?", (run_id,)).fetchone()
-        if row is None:
-            raise KeyError(run_id)
-        run = json.loads(row[0])
-        old_version = run["version"]
+    def update(run):
+        version = run["version"]
         action(run)
-        if old_version != run["version"]:
+        if version != run["version"]:
             run["analysis"] = None
-        conn.execute("UPDATE runs SET data = ? WHERE id = ?", (json.dumps(run), run_id))
-    return run
+    return storage.mutate("runs", run_id, update)
 
 
 def _gate(run):

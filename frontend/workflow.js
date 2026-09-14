@@ -41,14 +41,15 @@
     controls.forEach(id => $(id).disabled = true);
     try {
       const headers = {'Content-Type': 'application/json'};
+      if ($('workflowAccessKey').value.trim()) headers['X-StateGuard-Live-Key'] = $('workflowAccessKey').value.trim();
       if (live) {
         const key = $('workflowAccessKey').value.trim();
-        if (!key) throw new Error('Enter the local demo access key above the investigation button.');
+        if (!key) throw new Error('Enter the demo access key above the investigation button.');
         headers['X-StateGuard-Live-Key'] = key;
       }
       const response = await fetch(path, {method, headers, ...(body ? {body: JSON.stringify(body)} : {})});
       const payload = await response.json();
-      if (!response.ok) throw new Error(typeof payload.detail === 'string' ? payload.detail : 'Request failed');
+      if (!response.ok) throw new Error(payload.detail === 'live_demo_key_required' ? 'Enter the demo access key to run actions on the hosted demo.' : (typeof payload.detail === 'string' ? payload.detail : 'Request failed'));
       run = payload;
     } catch (err) { $('workflowError').textContent = err.message; }
     finally { busy = false; $('startWorkflow').disabled = false; render(); }

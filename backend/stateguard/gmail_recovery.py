@@ -1,17 +1,14 @@
 """Gmail-backed recovery for one existing self-email. No send capability."""
-import json
 import os
 import time
-from pathlib import Path
 from datetime import datetime, timezone
-from .workflow import _connect, Analysis
+from .workflow import Analysis
+from . import storage
+from .runtime_config import gmail_document
 from .gmail_evidence import check_evidence
 
-ROOT = Path(__file__).resolve().parents[2]
-
-
 def attempt():
-    value = json.loads((ROOT / '.secrets/gmail-demo-attempt.json').read_text(encoding='utf-8'))
+    value = gmail_document('gmail-demo-attempt.json')
     if value.get('send_claimed') is not True:
         raise RuntimeError('A durable authorized send claim is required.')
     return value
@@ -21,7 +18,7 @@ def fresh_evidence():
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
     claim = attempt()
-    credentials = Credentials.from_authorized_user_file(str(ROOT / '.secrets/gmail-token.json'))
+    credentials = Credentials.from_authorized_user_info(gmail_document('gmail-token.json'))
     service = build('gmail', 'v1', credentials=credentials, cache_discovery=False)
     account = service.users().getProfile(userId='me').execute(num_retries=0)['emailAddress']
     if account != claim['account']:
@@ -48,18 +45,13 @@ def event(s, name, detail):
 
 def mutate(action):
     claim = attempt()
-    with _connect() as conn:
-        conn.execute('CREATE TABLE IF NOT EXISTS gmail_recovery (id TEXT PRIMARY KEY, data TEXT NOT NULL)')
-        conn.execute('BEGIN IMMEDIATE')
-        row = conn.execute('SELECT data FROM gmail_recovery WHERE id=?', (claim['message_id'],)).fetchone()
-        state = json.loads(row[0]) if row else {'version': 0, 'belief': 'unknown', 'status': 'ready',
+    def initial():
+        state = {'version': 0, 'belief': 'unknown', 'status': 'ready',
             'retry_allowed': False, 'analysis': None, 'evidence': {}, 'events': [],
             'scope': 'Existing real self-email; acknowledgment loss was deliberately injected. No new mail is sent.'}
-        if not row:
-            event(state, 'send.claim.loaded', 'Persisted send attempt found. Worker acknowledgment is unknown; retries are held.')
-        action(state)
-        conn.execute('INSERT OR REPLACE INTO gmail_recovery VALUES (?, ?)', (claim['message_id'], json.dumps(state)))
-    return state
+        event(state, 'send.claim.loaded', 'Persisted send attempt found. Worker acknowledgment is unknown; retries are held.')
+        return state
+    return storage.mutate('gmail_recovery', claim['message_id'], action, initial=initial)
 
 
 def read():

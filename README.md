@@ -12,7 +12,7 @@ The flagship is an **executable, stateful email-provider sandbox**. The sandbox 
 4. Approve reconciliation. The worker updates its belief, verifies delivery, and completes without sending again.
 5. Try healthy, pending, and unavailable-provider scenarios. Healthy work completes without approval; uncertain work waits for fresh evidence.
 
-Approval includes an observed state version. A provider change invalidates old approval. SQLite transactions protect the sandbox against concurrent retries. Repeated completed operations have no additional effect.
+Approval includes an observed state version. A provider change invalidates old approval. SQLite transactions locally and DynamoDB conditional writes on AWS protect the sandbox against concurrent retries. Repeated completed operations have no additional effect.
 
 ## Run locally
 
@@ -57,7 +57,7 @@ See `docs/evaluation.json` for a reproducible four-scenario sandbox evaluation. 
 
 ## Deployment scope
 
-The former Lambda demo URL is documented in `docs/DEPLOYMENT.md`; this working-tree upgrade has not been deployed there. The new stateful workflow requires a single host with a persistent SQLite volume. **Do not use Lambda /tmp as shared durable incident storage**: instances have separate ephemeral filesystems. A scaled/cloud version needs shared storage and provider idempotency.
+The full app runs on AWS Lambda with shared DynamoDB state, Secrets Manager credentials and an EventBridge sandbox worker. See `docs/DEPLOYMENT.md` for the URL and update procedure, and `docs/aws-live-verification.json` for evidence. Local development uses SQLite. GitHub pushes do not deploy automatically.
 
 Read-only fixture traces, confidence values, and illustrative AWS architecture are not claims of live multi-agent operation. The old text simulator is an offline preview; identical statements produce no mismatch, and other free text requires external verification. Handoff redaction is best-effort, not a complete privacy guarantee.
 
@@ -107,7 +107,7 @@ self-email proof. This is not a Gmail idempotency or general exactly-once guaran
 
 The 2:36 video in `artifacts/demo/StateGuard-demo.mp4` documents the earlier sandbox
 flow with real OpenAI analysis. It does not show the later Gmail experiment.
-No updated deployment or contest submission is included in this change.
+AWS now includes the upgraded app. Devpost submission and uploaded attachments are managed separately.
 
 ### Conduct the existing-message Gmail demo
 
@@ -117,7 +117,7 @@ check Gmail evidence, investigate with Strands, then reconcile verified receipt.
 All Gmail endpoints require the local key, even when live models are disabled.
 The agent receives only the saved claim facts and scoped counts/correlation notes,
 not mailbox addresses or message bodies. The approval handler rechecks Gmail and
-validates the local version before reconciling. Gmail checks and SQLite updates
+validates the local version before reconciling. Gmail checks and state updates
 are not a distributed transaction. The same durable claim remains in place.
 
 `docs/gmail-live-verification.json` records a completed real run. The new narrated
