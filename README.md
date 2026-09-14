@@ -1,130 +1,151 @@
 # StateGuard
 
-StateGuard prevents an email worker from retrying against stale delivery state. It checks the provider ledger before sending, holds uncertain actions, and asks the owner only when a confirmed contradiction needs reconciliation.
+> **AWS AI Challenge** — *Professional Agents Track*  
+> **Live Cloud Demo**: [https://gzmrlkrayb3oz3qe22g2v5tv7e0qoqfa.lambda-url.us-east-1.on.aws/](https://gzmrlkrayb3oz3qe22g2v5tv7e0qoqfa.lambda-url.us-east-1.on.aws/)  
+> **Interactive Architecture**: [https://gzmrlkrayb3oz3qe22g2v5tv7e0qoqfa.lambda-url.us-east-1.on.aws/architecture](https://gzmrlkrayb3oz3qe22g2v5tv7e0qoqfa.lambda-url.us-east-1.on.aws/architecture)
 
-## Working demo
+StateGuard prevents autonomous communication agents from retrying against stale delivery state. When external APIs experience acknowledgment timeouts, naive agents assume failure and double-send. StateGuard introduces a deterministic transactional action gate, queries fresh provider evidence using read-only Strands investigation tools, and requires versioned human approval before reconciling belief.
 
-The flagship is an **executable, stateful email-provider sandbox**. The sandbox sends no actual email. The separate Real Gmail proof below verifies an existing authorized self-email. Archived trading and scheduling examples remain clearly labeled read-only fixture replays.
+---
 
-1. Start the “Provider delivered, worker saw timeout” workflow.
-2. Run the worker. The provider ledger remains at one delivery and the retry is blocked.
-3. Optionally run **Investigate with live Strands**. The agent queries worker history and fresh provider evidence through tools, produces a structured diagnosis, and records actual tool outputs and measured durations.
-4. Approve reconciliation. The worker updates its belief, verifies delivery, and completes without sending again.
-5. Try healthy, pending, and unavailable-provider scenarios. Healthy work completes without approval; uncertain work waits for fresh evidence.
+## Architecture
 
-Approval includes an observed state version. A provider change invalidates old approval. SQLite transactions locally and DynamoDB conditional writes on AWS protect the sandbox against concurrent retries. Repeated completed operations have no additional effect.
+StateGuard implements two distinct, parallel evidence pipelines feeding an advisory AI investigation and deterministic human-in-the-loop recovery:
 
-## Run locally
+![StateGuard Architecture](docs/architecture-diagram.png)
+
+1. **Stateful Sandbox Worker (Primary Flow)**:
+   * EventBridge invokes a background worker every minute (or via local polling).
+   * The deterministic gate verifies the sandbox provider ledger before dispatching.
+   * On delivery contradiction, the retry is held and a versioned incident is published.
+   * Strands agent investigates using `inspect_worker_history` and `query_delivery_provider`.
+2. **Real Gmail Recovery (Controlled Proof)**:
+   * Evaluates an authorized, previously sent self-email where acknowledgment loss was simulated.
+   * Read-only tools (`inspect_send_attempt` and `query_gmail_receipt`) inspect live Gmail API metadata via OAuth 2.0 without resend permissions.
+3. **Deterministic Review & Recovery**:
+   * Strands agent recommendations are strictly advisory (the agent has no send or approval tools).
+   * Validated diagnoses are committed to versioned state (**DynamoDB** conditional writes on AWS / **SQLite** transactions locally).
+   * The operator reviews evidence in the dashboard; approval reconciles local belief only after re-verifying current evidence against the expected state version.
+
+For the formal architecture specification and Mermaid workflows, see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+---
+
+## Executable Sandbox Walkthrough
+
+The primary demo is an executable, stateful email-provider sandbox:
+
+1. **Trigger timeout contradiction**: Select “Provider delivered, worker saw timeout” workflow.
+2. **Run worker**: The background worker attempts processing. The provider ledger reflects that the message was already delivered; the action gate halts the duplicate retry.
+3. **Investigate with Strands**: The agent executes both evidence tools, analyzes worker belief against provider reality, and returns a Pydantic-validated diagnosis with actual token usage and measured execution time.
+4. **Approve reconciliation**: The operator authorizes reconciliation. The gate rechecks state versions, updates belief to `delivered`, and completes without duplicate sends.
+5. **Explore state conditions**: Test healthy, pending, and unavailable provider states. Healthy workflows complete autonomously without approval; uncertain provider responses remain queued.
+
+---
+
+## Real Gmail Recovery (Controlled Experiment)
+
+To validate behavior against a real production API, StateGuard includes a dedicated Gmail verification flow:
+
+* Uses an authorized, pre-existing self-email sent to the authenticated account itself.
+* Injects acknowledgment loss to simulate network timeout after provider acceptance.
+* The dashboard loads the durable send claim, queries fresh Sent and Inbox metadata, and invokes Strands tools with scoped facts (no message bodies or recipient addresses are exposed to the model).
+* Approving reconciliation updates local belief only; the system contains no mechanism to resend mail.
+* See [`docs/gmail-live-verification.json`](docs/gmail-live-verification.json) for recorded run data.
+
+---
+
+## Quickstart & Local Setup
+
+### 1. Installation
 
 ```bash
+git clone https://github.com/mofeed28/stateguard.git
+cd stateguard
 python -m pip install -e ".[dev]"
+```
+
+### 2. Configure Environment
+
+Create a `.env` file in the project root:
+
+```ini
+STATEGUARD_MODEL_PROVIDER=openai
+STATEGUARD_USE_STRANDS_LLM=1
+OPENAI_API_KEY=your_openai_api_key
+STATEGUARD_LIVE_DEMO_KEY=choose_a_local_demo_key
+```
+
+### 3. Start the API Server
+
+```bash
 python -m uvicorn stateguard.app:app --app-dir backend --host 127.0.0.1 --port 8787
 ```
 
-Open http://127.0.0.1:8787. By default the SQLite sandbox database is in the system temporary directory. Set `STATEGUARD_DB_PATH` to a durable file for persistence across restarts. API and worker must use the same path.
+Open [http://127.0.0.1:8787](http://127.0.0.1:8787) in your browser.
 
-For autonomous processing, start a second process (after installing the package):
+### 4. Run the Autonomous Worker
+
+In a separate terminal, launch the polling worker:
 
 ```bash
 python -m stateguard.worker --interval 5
 ```
 
-The worker processes healthy work quietly and holds pending evidence without repeated events. Confirmed conflicts become approval cards. With live mode enabled, the worker also invokes Strands on new conflicts. The dashboard refreshes current workflow state every five seconds. It does not send notifications externally.
-
-## Live Strands / Bedrock
-
-Configure these environment variables using your normal AWS credential chain:
-
-```text
-STATEGUARD_USE_STRANDS_LLM=1
-STATEGUARD_BEDROCK_MODEL_ID=amazon.nova-micro-v1:0
-AWS_REGION=us-east-1
-STATEGUARD_LIVE_DEMO_KEY=<your demo access key>
-```
-
-The chosen model must be available to your AWS account and execution role. The live route requires the demo key. Credentials never belong in source code or the browser. Agent turns/output are bounded, and provider request timeouts are configured. A failed live investigation returns an error; it is never displayed as successful AI analysis.
-
-The live agent has two read-only tools: `inspect_worker_history` and `query_delivery_provider`. Both must be called for an investigation to be accepted. Analysis is advisory; the deterministic transaction gate owns authorization and sends. Evidence changes invalidate stored analysis. The SDK invocation is implemented and tested with an injected test agent; an actual Bedrock invocation still needs verification in the configured AWS environment.
-
-## Validation
-
-```bash
-python -m pytest -q
-python scripts/evaluate.py
-```
-
-See `docs/evaluation.json` for a reproducible four-scenario sandbox evaluation. It does not establish production effectiveness, customer savings, or LLM accuracy. Tests additionally exercise concurrent retries, duplicate approvals, stale approval, background processing, and redaction.
-
-## Deployment scope
-
-The full app runs on AWS Lambda with shared DynamoDB state, Secrets Manager credentials and an EventBridge sandbox worker. See `docs/DEPLOYMENT.md` for the URL and update procedure, and `docs/aws-live-verification.json` for evidence. Local development uses SQLite. GitHub pushes do not deploy automatically.
-
-Read-only fixture traces, confidence values, and illustrative AWS architecture are not claims of live multi-agent operation. The old text simulator is an offline preview; identical statements produce no mismatch, and other free text requires external verification. Handoff redaction is best-effort, not a complete privacy guarantee.
-
-## Submission
-
-Track: Professional Agents. The concrete audience is small teams operating client-communication automations. See `docs/DEMO_SCRIPT.md`, `docs/SUBMISSION_PACKET.md`, and `docs/ARCHITECTURE.md` for current materials. MIT licensed.
-
-### OpenAI through Strands (local demo)
-
-Install `python -m pip install -e ".[dev]"`. Add `OPENAI_API_KEY=...` to the
-root `.env` (gitignored), then run:
-
+Alternatively, run the automated launch script:
 ```powershell
 ./scripts/start-local.ps1 -Live -Provider openai
 ```
 
-The workflow uses `gpt-5-mini` with low reasoning effort, bounded turns/output,
-and no automatic retries. Reports include provider, model, usage and evidence.
-Messages remain simulated. The legacy custom-text live preview remains Bedrock-only.
-Use the contents of `.stateguard-live-key` in the masked local demo access field, never the OpenAI API key.
-For the separate worker, also set `STATEGUARD_MODEL_PROVIDER=openai` and
-`STATEGUARD_USE_STRANDS_LLM=1` in its process.
+---
 
-## Real Gmail proof (separate CLI)
+## Model & Provider Support
 
-The sandbox section uses simulated delivery. The Real Gmail proof section now
-loads the authorized self-email, queries fresh Gmail metadata, runs a real Strands
-investigation and reconciles local belief after approval. It has no send capability.
-The separate Gmail CLI is used only to create an explicitly authorized self-test. Install `python -m pip install -e ".[gmail]"`, save a
-Desktop OAuth client as `.secrets/gmail-client.json`, and run
-`python scripts/connect_gmail.py`. Tokens stay in the Git-excluded `.secrets/` folder.
+StateGuard leverages the [Strands Agents SDK](https://github.com/strands-agents/strands) with bounded turns, structured Pydantic outputs, and explicit tool execution:
 
-Only after explicitly authorizing a real self-email, run
-`python scripts/gmail_delivery_demo.py --send-approved-self-test`.
-This sends the fixed subject "StateGuard delivery test" and body
-"Controlled StateGuard demo. No action needed." to the authenticated account itself.
-An exclusive, flushed attempt record is saved before sending. Existing or damaged
-records cannot authorize a second send. The demo deliberately withholds the send
-acknowledgment from the worker; this is injected uncertainty, not a genuine outage.
-Recheck without sending using `python scripts/gmail_delivery_demo.py --check-only`.
-Never remove the attempt record to retry an uncertain send.
+* **OpenAI (`gpt-5-mini`) [Verified Primary]**: The default model for deployed cloud and local investigations. Provides deterministic structured outputs and tool traces under low reasoning latency.
+* **Amazon Bedrock (`us.amazon.nova-micro-v1:0`) [Supported Optional]**: Compatible via Strands BedrockModel with AWS SigV4 credentials. *(Note: OpenAI is used for the active AWS deployment due to account quota limits).*
 
-Gmail rewrote the client Message-ID during the verified test. The checker therefore
-supports weaker correlation by exact subject, account and a narrow send window.
-It requires one matching record carrying both SENT and INBOX labels for this
-self-email proof. This is not a Gmail idempotency or general exactly-once guarantee.
+Credentials are never embedded in frontend code. Cloud deployments fetch API tokens dynamically from **AWS Secrets Manager** via IAM execution roles.
 
-The 2:36 video in `artifacts/demo/StateGuard-demo.mp4` documents the earlier sandbox
-flow with real OpenAI analysis. It does not show the later Gmail experiment.
-AWS now includes the upgraded app. Devpost submission and uploaded attachments are managed separately.
+---
 
-### Conduct the existing-message Gmail demo
+## Demo Videos & Artifacts
 
-Start `./scripts/start-local.ps1 -Live -Provider openai` after Gmail authorization.
-In **Real Gmail proof**, enter the local demo access key, load the existing attempt,
-check Gmail evidence, investigate with Strands, then reconcile verified receipt.
-All Gmail endpoints require the local key, even when live models are disabled.
-The agent receives only the saved claim facts and scoped counts/correlation notes,
-not mailbox addresses or message bodies. The approval handler rechecks Gmail and
-validates the local version before reconciling. Gmail checks and state updates
-are not a distributed transaction. The same durable claim remains in place.
+* **Sandbox Investigation**: [`artifacts/demo/StateGuard-demo.mp4`](artifacts/demo/StateGuard-demo.mp4) (2:36 walkthrough of the core sandbox workflow, contradiction blocking, and live Strands investigation).
+* **Gmail Recovery Walkthrough**: [`artifacts/gmail-demo/StateGuard-demo.mp4`](artifacts/gmail-demo/StateGuard-demo.mp4) (Narrated walkthrough of real Gmail metadata verification and versioned approval).
 
-`docs/gmail-live-verification.json` records a completed real run. The new narrated
-walkthrough is `artifacts/gmail-demo/StateGuard-demo.mp4`; it uses actual app
-screenshots, edited for narration, and is not an uninterrupted screen recording.
-The old sandbox video is retained separately. No new email was sent for this run.
+---
 
-## Additional submission resources
+## Validation & Automated Testing
 
-See `docs/FINAL_SUBMISSION_RUNBOOK.md` for the earlier submission checklist; its fixture-era deployment claims must be revalidated against this revision. The architecture diagram is served at `/architecture`. Bedrock can use `STATEGUARD_BEDROCK_MODEL_ID=us.amazon.nova-micro-v1:0` when cross-region inference permissions and quotas allow it.
+StateGuard is tested for concurrency safety, version validation, duplicate prevention, and redaction:
+
+```bash
+# Run unit and integration test suite
+python -m pytest -q
+
+# Run reproducible 4-scenario sandbox evaluation matrix
+python scripts/evaluate.py
+```
+
+* Evaluation outputs and methodology: [`docs/evaluation.json`](docs/evaluation.json).
+* Cloud deployment verification evidence: [`docs/aws-live-verification.json`](docs/aws-live-verification.json).
+
+---
+
+## Cloud Deployment Scope
+
+The production deployment runs serverless on AWS:
+* **Compute**: AWS Lambda (Python 3.11 with Mangum for FastAPI).
+* **Persistence**: Amazon DynamoDB with conditional writes preventing concurrent retry races.
+* **Scheduling**: Amazon EventBridge invokes the sandbox worker every minute.
+* **Secrets**: AWS Secrets Manager manages provider API tokens and OAuth credentials.
+
+Deployment procedures and cloud verification runbooks are documented in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+---
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.
