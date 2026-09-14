@@ -17,13 +17,18 @@ def test_dashboard_sidebar_has_section_targets():
     assert 'data-target="#observabilitySection"' in html
     assert 'data-target="#adapters"' in html
     assert 'data-target="#architectureSection"' in html
-    assert 'href="/architecture"' in html
+    assert 'href="/architecture.svg?v=20260914"' in html
+    assert 'src="/architecture.svg?v=20260914"' in html
 
 
 def test_architecture_diagram_route_is_available():
     response = client.get("/architecture")
     assert response.status_code == 200
     assert "StateGuard Architecture" in response.text
+    asset = client.get("/architecture.svg")
+    assert asset.status_code == 200
+    assert asset.headers["content-type"].startswith("image/svg+xml")
+    assert asset.headers["cache-control"] == "no-cache"
 
 
 def test_live_process_start_method_uses_spawn_without_fork(monkeypatch):
