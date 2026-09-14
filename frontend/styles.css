@@ -649,16 +649,41 @@ pre {
 }
 
 .architecture-preview {
-  display: block;
+  display: flex;
+  justify-content: center;
   width: 100%;
-  aspect-ratio: 1800 / 1490;
   border: 1px solid var(--line);
   border-radius: 7px;
   background: #f3f6fa;
 }
 
+.architecture-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 540px;
+  object-fit: contain;
+}
+
 .tools-panel {
   grid-column: 1 / -1;
+  min-height: 0;
+}
+
+.tools-panel summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.tools-panel summary span {
+  margin-left: 12px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.tools-panel[open] .tool-list {
+  margin-top: 16px;
 }
 
 .tools-panel .tool-list {

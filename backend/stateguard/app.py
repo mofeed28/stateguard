@@ -231,12 +231,17 @@ app.mount("/assets", StaticFiles(directory=FRONTEND_DIR), name="assets")
 
 @app.get("/")
 def index() -> FileResponse:
-    return FileResponse(f"{FRONTEND_DIR}/index.html")
+    return FileResponse(f"{FRONTEND_DIR}/index.html", headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/architecture")
 def architecture() -> FileResponse:
-    return FileResponse("docs/architecture-diagram.html")
+    return FileResponse("docs/architecture-diagram.html", headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/architecture.svg")
+def architecture_asset() -> FileResponse:
+    return FileResponse("docs/architecture-diagram.svg", media_type="image/svg+xml", headers={"Cache-Control": "no-cache"})
 
 
 _http_handler = Mangum(app)

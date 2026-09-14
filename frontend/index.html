@@ -255,19 +255,18 @@
         </section>
 
         <section class="tabs" id="architectureSection">
-          <article class="panel tools-panel">
-            <div class="panel-head">
-              <h3>Archived replay tools</h3>
-              <span>scripted examples</span>
-            </div>
+          <details class="panel tools-panel">
+            <summary>Archived replay tools <span>Scripted examples</span></summary>
             <div id="tools" class="tool-list"></div>
-          </article>
+          </details>
           <article id="architecture-panel" class="panel architecture-panel">
             <div class="panel-head">
               <h3>StateGuard architecture</h3>
-              <a class="panel-link" href="/architecture" target="_blank" rel="noreferrer">Open diagram</a>
+              <a class="panel-link" href="/architecture.svg?v=20260914" target="_blank" rel="noreferrer">Open diagram</a>
             </div>
-            <iframe class="architecture-preview" src="/architecture" title="StateGuard architecture: sandbox and Gmail recovery paths" loading="lazy"></iframe>
+            <a class="architecture-preview" href="/architecture.svg?v=20260914" target="_blank" rel="noreferrer" aria-label="Open full-size StateGuard architecture diagram">
+              <img src="/architecture.svg?v=20260914" alt="StateGuard architecture: separate sandbox and Gmail evidence paths, Strands investigation, persisted state and human review" width="1800" height="1490" loading="lazy">
+            </a>
           </article>
         </section>
 
