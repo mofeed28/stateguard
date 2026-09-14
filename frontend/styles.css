@@ -643,19 +643,26 @@ pre {
   font-weight: 800;
 }
 
-.architecture {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+.architecture-panel {
+  grid-column: 1 / -1;
+  grid-row: 1;
 }
 
-.architecture span {
+.architecture-preview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1800 / 1490;
   border: 1px solid var(--line);
   border-radius: 7px;
-  padding: 14px 10px;
-  text-align: center;
-  font-weight: 700;
-  background: #f8fafc;
+  background: #f3f6fa;
+}
+
+.tools-panel {
+  grid-column: 1 / -1;
+}
+
+.tools-panel .tool-list {
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 }
 
 .adapter {
